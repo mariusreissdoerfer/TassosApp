@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Trinkgeld-Rechner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #f5f5f5;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      font-size: 1.3rem;
+      margin-top: 0;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    .result {
+      margin-top: 16px;
+      padding-top: 10px;
+      border-top: 1px solid #eee;
+      font-size: 1rem;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+
+    .error {
+      margin-top: 10px;
+      color: #c00;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Trinkgeld &amp; Rückgeld</h1>
+
+    <label for="betrag">Rechnungsbetrag (€)</label>
+    <input id="betrag" type="number" inputmode="decimal" step="0.01" min="0" placeholder="z.B. 37.50">
+
+    <label for="gezahlt">Gezahlt (€)</label>
+    <input id="gezahlt" type="number" inputmode="decimal" step="0.01" min="0" placeholder="z.B. 50">
+
+    <label for="machAuf">Mach auf (€ – optional)</label>
+    <input id="machAuf" type="number" inputmode="decimal" step="0.01" min="0" placeholder="z.B. 40">
+
+    <div id="error" class="error"></div>
+
+    <div class="result">
+      <div class="row">
+        <span>Trinkgeld:</span>
+        <strong id="trinkgeld">0,00&nbsp;€</strong>
+      </div>
+      <div class="row">
+        <span>Rückgeld:</span>
+        <strong id="rueckgeld">0,00&nbsp;€</strong>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function formatEuro(v) {
+      if (isNaN(v)) v = 0;
+      return v.toFixed(2).replace('.', ',') + ' €';
+    }
+
+    function calc() {
+      const betrag = parseFloat(betragInput.value.replace(',', '.'));
+      const gezahlt = parseFloat(gezahltInput.value.replace(',', '.'));
+      const machAufValue = machAufInput.value.trim();
+      const machAuf = machAufValue === '' ? NaN : parseFloat(machAufValue.replace(',', '.'));
+
+      errorDiv.textContent = '';
+
+      if (isNaN(betrag) || isNaN(gezahlt)) {
+        trinkgeldSpan.textContent = '0,00 €';
+        rueckgeldSpan.textContent = '0,00 €';
+        return;
+      }
+
+      let trinkgeld = 0;
+      let rueckgeld = 0;
+
+      if (!isNaN(machAuf) && machAuf >= betrag) {
+        trinkgeld = machAuf - betrag;
+        rueckgeld = gezahlt - machAuf;
+
+        if (rueckgeld < 0) {
+          errorDiv.textContent = 'Achtung: Gezahlt ist weniger als „Mach auf“.';
+        }
+      } else {
+        const diff = gezahlt - betrag;
+        trinkgeld = diff > 0 ? diff : 0;
+        rueckgeld = 0;
+
+        if (diff < 0) {
+          errorDiv.textContent = 'Achtung: Gezahlt ist weniger als Rechnungsbetrag.';
+        }
+      }
+
+      trinkgeldSpan.textContent = formatEuro(trinkgeld);
+      rueckgeldSpan.textContent = formatEuro(rueckgeld);
+    }
+
+    const betragInput = document.getElementById('betrag');
+    const gezahltInput = document.getElementById('gezahlt');
+    const machAufInput = document.getElementById('machAuf');
+    const errorDiv = document.getElementById('error');
+    const trinkgeldSpan = document.getElementById('trinkgeld');
+    const rueckgeldSpan = document.getElementById('rueckgeld');
+
+    [betragInput, gezahltInput, machAufInput].forEach(el => {
+      el.addEventListener('input', calc);
+    });
+  </script>
+</body>
+</html>
