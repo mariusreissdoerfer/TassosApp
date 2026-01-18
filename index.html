@@ -35,7 +35,6 @@
       overflow: hidden;
     }
 
-    /* Dekorativer „griechischer“ Rand oben */
     .greek-border {
       position: absolute;
       top: 0;
@@ -221,7 +220,7 @@
     </div>
 
     <div class="footer-note">
-      Tipp: Lass „Mach auf“ frei, wenn alles Extra Trinkgeld sein soll.
+      Tipp: Lass „Mach auf“ leer, wenn du nur Rückgeld willst.
     </div>
   </div>
 
@@ -251,7 +250,11 @@
       let trinkgeld = 0;
       let rueckgeld = 0;
 
-      if (!isNaN(machAuf) && machAuf >= betrag) {
+      if (!isNaN(machAuf)) {
+        // Fall: "Mach auf" benutzt → Trinkgeld = MachAuf - Rechnungsbetrag
+        if (machAuf < betrag) {
+          errorDiv.textContent = '„Mach auf“ muss mindestens so hoch wie der Rechnungsbetrag sein.';
+        }
         trinkgeld = machAuf - betrag;
         rueckgeld = gezahlt - machAuf;
 
@@ -259,9 +262,10 @@
           errorDiv.textContent = 'Achtung: Gezahlt ist weniger als „Mach auf“-Betrag.';
         }
       } else {
+        // Fall: kein "Mach auf" → ganz normal Rückgeld
         const diff = gezahlt - betrag;
-        trinkgeld = diff > 0 ? diff : 0;
-        rueckgeld = 0;
+        trinkgeld = 0;
+        rueckgeld = diff > 0 ? diff : 0;
 
         if (diff < 0) {
           errorDiv.textContent = 'Achtung: Gezahlt ist weniger als Rechnungsbetrag.';
