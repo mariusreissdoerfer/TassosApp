@@ -2,30 +2,94 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Trinkgeld-Rechner</title>
+  <title>Tassos Rückgeldrechner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    :root {
+      --blue: #1e88e5;
+      --blue-dark: #0d47a1;
+      --sand: #fbe9d0;
+      --white: #ffffff;
+    }
+
     body {
       font-family: system-ui, -apple-system, sans-serif;
       margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
       padding: 16px;
-      background: #f5f5f5;
+      background: radial-gradient(circle at top, #e3f2fd 0, #bbdefb 40%, #90caf9 100%);
     }
 
     .container {
+      width: 100%;
       max-width: 480px;
-      margin: 0 auto;
-      background: #ffffff;
-      padding: 16px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      background: var(--white);
+      padding: 18px 16px 20px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Dekorativer „griechischer“ Rand oben */
+    .greek-border {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 16px;
+      background-image: linear-gradient(
+        90deg,
+        var(--blue-dark) 0,
+        var(--blue-dark) 12.5%,
+        var(--white) 12.5%,
+        var(--white) 25%,
+        var(--blue-dark) 25%,
+        var(--blue-dark) 37.5%,
+        var(--white) 37.5%,
+        var(--white) 50%,
+        var(--blue-dark) 50%,
+        var(--blue-dark) 62.5%,
+        var(--white) 62.5%,
+        var(--white) 75%,
+        var(--blue-dark) 75%,
+        var(--blue-dark) 87.5%,
+        var(--white) 87.5%,
+        var(--white) 100%
+      );
+      background-size: 80px 16px;
     }
 
     h1 {
-      font-size: 1.3rem;
-      margin-top: 0;
-      margin-bottom: 12px;
+      font-size: 1.35rem;
+      margin: 14px 0 4px;
       text-align: center;
+      color: var(--blue-dark);
+      font-weight: 700;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #607d8b;
+      margin-bottom: 14px;
+    }
+
+    .pill {
+      display: inline-block;
+      margin: 0 auto 10px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(13,71,161,0.2);
+      color: var(--blue-dark);
+      background: rgba(227, 242, 253, 0.7);
     }
 
     label {
@@ -33,61 +97,131 @@
       margin-top: 10px;
       margin-bottom: 4px;
       font-size: 0.9rem;
+      color: #1a237e;
     }
 
     input {
       width: 100%;
-      padding: 10px;
+      padding: 10px 11px;
       font-size: 1rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      border-radius: 10px;
+      border: 1px solid #cfd8dc;
       box-sizing: border-box;
+      background: #f9fafb;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
     }
 
-    .result {
+    input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(30,136,229,0.2);
+      background: #ffffff;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: #78909c;
+      margin-top: 2px;
+    }
+
+    .result-card {
       margin-top: 16px;
-      padding-top: 10px;
-      border-top: 1px solid #eee;
-      font-size: 1rem;
+      padding: 12px 12px 10px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+      color: var(--white);
     }
 
-    .row {
+    .result-header {
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+
+    .result-title {
+      font-weight: 600;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
       margin-top: 6px;
+      font-size: 0.95rem;
+    }
+
+    .result-label {
+      opacity: 0.9;
+    }
+
+    .result-value {
+      font-weight: 700;
+      font-size: 1.05rem;
     }
 
     .error {
+      margin-top: 8px;
+      color: #c62828;
+      font-size: 0.8rem;
+    }
+
+    .footer-note {
       margin-top: 10px;
-      color: #c00;
-      font-size: 0.85rem;
+      font-size: 0.75rem;
+      text-align: center;
+      color: #90a4ae;
+    }
+
+    @media (max-width: 400px) {
+      h1 {
+        font-size: 1.2rem;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Trinkgeld &amp; Rückgeld</h1>
+    <div class="greek-border"></div>
+    <div style="text-align:center; margin-top:10px;">
+      <span class="pill">Taverna Edition</span>
+    </div>
+    <h1>Tassos Rückgeldrechner</h1>
+    <div class="subtitle">Fix rechnen wie in der Taverne um die Ecke 🇬🇷</div>
 
     <label for="betrag">Rechnungsbetrag (€)</label>
     <input id="betrag" type="number" inputmode="decimal" step="0.01" min="0" placeholder="z.B. 37.50">
+    <div class="hint">Betrag auf der Rechnung</div>
 
     <label for="gezahlt">Gezahlt (€)</label>
     <input id="gezahlt" type="number" inputmode="decimal" step="0.01" min="0" placeholder="z.B. 50">
+    <div class="hint">Was du tatsächlich übergibst</div>
 
     <label for="machAuf">Mach auf (€ – optional)</label>
     <input id="machAuf" type="number" inputmode="decimal" step="0.01" min="0" placeholder="z.B. 40">
+    <div class="hint">Auf welchen Betrag du „aufrunden“ willst</div>
 
     <div id="error" class="error"></div>
 
-    <div class="result">
-      <div class="row">
-        <span>Trinkgeld:</span>
-        <strong id="trinkgeld">0,00&nbsp;€</strong>
+    <div class="result-card">
+      <div class="result-header">
+        <span class="result-title">Ergebnis</span>
+        <span style="font-size:0.8rem; opacity:0.8;">live berechnet</span>
       </div>
-      <div class="row">
-        <span>Rückgeld:</span>
-        <strong id="rueckgeld">0,00&nbsp;€</strong>
+      <div class="result-row">
+        <span class="result-label">Trinkgeld</span>
+        <span class="result-value" id="trinkgeld">0,00&nbsp;€</span>
       </div>
+      <div class="result-row">
+        <span class="result-label">Rückgeld</span>
+        <span class="result-value" id="rueckgeld">0,00&nbsp;€</span>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      Tipp: Lass „Mach auf“ frei, wenn alles Extra Trinkgeld sein soll.
     </div>
   </div>
 
@@ -98,10 +232,13 @@
     }
 
     function calc() {
-      const betrag = parseFloat(betragInput.value.replace(',', '.'));
-      const gezahlt = parseFloat(gezahltInput.value.replace(',', '.'));
-      const machAufValue = machAufInput.value.trim();
-      const machAuf = machAufValue === '' ? NaN : parseFloat(machAufValue.replace(',', '.'));
+      const betragRaw = betragInput.value.replace(',', '.');
+      const gezahltRaw = gezahltInput.value.replace(',', '.');
+      const machAufRaw = machAufInput.value.trim().replace(',', '.');
+
+      const betrag = parseFloat(betragRaw);
+      const gezahlt = parseFloat(gezahltRaw);
+      const machAuf = machAufRaw === '' ? NaN : parseFloat(machAufRaw);
 
       errorDiv.textContent = '';
 
@@ -119,7 +256,7 @@
         rueckgeld = gezahlt - machAuf;
 
         if (rueckgeld < 0) {
-          errorDiv.textContent = 'Achtung: Gezahlt ist weniger als „Mach auf“.';
+          errorDiv.textContent = 'Achtung: Gezahlt ist weniger als „Mach auf“-Betrag.';
         }
       } else {
         const diff = gezahlt - betrag;
