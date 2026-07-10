@@ -10,10 +10,13 @@ und **IV 78**.
   Bezugsmaß für den Beschlag) → Flügelaußenmaß → Glasfalz → Glas-Bestellmaß
 - **Fenstertypen**: Dreh-Kipp, Dreh, Kipp, Festverglasung – 1-flügelig,
   2-flügelig mit Stulp oder mit Pfosten
+- **Fensterzeichnung**: maßstäbliche Ansicht von innen mit
+  DIN-Öffnungssymbolen, Griffposition und Bemaßung
 - **Zuschnittliste** mit Kantelquerschnitten (roh/fertig), Glasleisten und
   Wetterschutzprofilen inkl. Zuschnittzugabe
-- **Beschlagliste** mit Richtgrößen (Getriebe-/Scherengröße nach FFH/FFB,
-  Mittel-/Zusatzverriegelungen, Schließbleche, Stulpgetriebe)
+- **Beschlagliste Siegenia TITAN AF** mit Richtgrößen (Getriebe-/Scherenarm
+  nach FFH/FFB, Mittel-/Zusatzverriegelungen, Schließbleche,
+  Stulpflügelgetriebe)
 - **Materialbedarf**: Kantel-Laufmeter, Holzvolumen, Glasfläche und -gewicht,
   Dichtungen, Dichtstoff, Oberfläche/Lasurmenge, Flügelgewichte mit
   Tragkraft-Warnung
@@ -21,6 +24,8 @@ und **IV 78**.
   (wird lokal im Browser gespeichert), Druck-/PDF-Ausgabe
 - **Profileinstellungen** (Anschlag, Falzluft, Überschlag, Glaseinstand usw.)
   sind anpassbar an die eigene Kantel und das eigene Beschlagsystem
+- **Handyfähig**: responsives Layout, auch auf dem Smartphone in der
+  Werkstatt nutzbar
 
 ## Starten
 
@@ -36,6 +41,7 @@ und dann <http://localhost:8000> aufrufen.
 ## Hinweis
 
 Alle Werte sind Richtwerte nach gängiger Werkstattpraxis (DIN-68121-nahe
-Profile, Dreh-Kipp-Standardbeschlag). Vor der Fertigung mit den
-Einbauvorschriften des Beschlagherstellers und den Daten des Glaslieferanten
-abgleichen.
+Profile). Die Beschlagliste orientiert sich am Siegenia-TITAN-AF-Sortiment
+für Holzfenster; exakte Artikelnummern und Bestellgrößen vor der Fertigung
+nach aktuellem Siegenia-Katalog bestimmen und die Glasdaten mit dem
+Lieferanten abgleichen.

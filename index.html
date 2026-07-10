@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <title>Holzfenster-Planer IV 68 / IV 78</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#5d4630">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Fensterplaner">
 <style>
   :root {
     --holz: #8d6e4a;
@@ -130,6 +134,30 @@
   .kette .box small { display:block; color:#777; font-size:.72rem; margin-top:2px; }
   .leer { color: #888; font-style: italic; font-size: .9rem; }
   td .sub { color:#777; font-size:.78rem; display:block; }
+  .tblwrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .zeichnung { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; margin: 6px 0 4px; }
+  .zeichnung figure { margin: 0; text-align: center; max-width: 100%; }
+  .zeichnung figcaption { font-size: .75rem; color: #666; margin-top: 4px; }
+  .zeichnung svg { max-width: 100%; height: auto; }
+  .sv-rahmen { fill: #a98860; stroke: #5d4630; stroke-width: 1.2; }
+  .sv-fluegel { fill: #c9ab7f; stroke: #5d4630; stroke-width: 1; }
+  .sv-pfosten { fill: #a98860; stroke: #5d4630; stroke-width: 1; }
+  .sv-glas { fill: #cfe8f5; stroke: #5d4630; stroke-width: .8; }
+  .sv-sym { stroke: #14506b; stroke-width: 1.6; fill: none; }
+  .sv-griff { fill: #2b2b2b; }
+  .sv-stulp { stroke: #5d4630; stroke-width: 1.4; stroke-dasharray: 5 3; }
+  .sv-mass { font-size: 11px; fill: #444; }
+  @media (max-width: 640px) {
+    body { padding: 6px; }
+    .panel { padding: 12px 10px; }
+    header { padding: 12px 14px; }
+    header h1 { font-size: 1.1rem; }
+    .grid { grid-template-columns: 1fr 1fr; gap: 8px 10px; }
+    input, select { font-size: 16px; padding: 9px 8px; }
+    .btnrow button { flex: 1 1 45%; }
+    th, td { font-size: .78rem; padding: 4px 6px; }
+    .kette { grid-template-columns: 1fr 1fr; }
+  }
   @media print {
     body { background: #fff; padding: 0; }
     .nur-bildschirm, header p, .btnrow, details { display: none !important; }
@@ -143,7 +171,7 @@
 
 <header>
   <h1>Holzfenster-Planer &nbsp;IV 68 / IV 78</h1>
-  <p>Maßketten, Zuschnitt, Glasmaße, Beschläge und Materialbedarf für Holzfenster – für die Werkstatt.</p>
+  <p>Maßketten, Zuschnitt, Glasmaße, Siegenia-Beschlag und Materialbedarf für Holzfenster – für die Werkstatt.</p>
 </header>
 
 <!-- ================= EINGABE ================= -->
@@ -260,8 +288,9 @@
   </div>
   <p class="hinweis">
     Alle Werte sind <b>Richtwerte nach gängiger Werkstattpraxis</b> (DIN-68121-nahe Profile, Dreh-Kipp-Standardbeschlag).
-    Vor der Fertigung mit den Einbauvorschriften des eigenen Beschlagherstellers (z.&nbsp;B. Roto, Siegenia, Maco, Winkhaus)
-    und den Glasdaten des Lieferanten abgleichen. Getriebe-/Scherengrößen sind FFB/FFH-abhängige Richtgrößen.
+    Die Beschlagliste orientiert sich am <b>Siegenia TITAN AF</b>-Sortiment für Holzfenster – exakte Artikelnummern und
+    Bestellgrößen vor der Fertigung nach aktuellem Siegenia-Katalog bzw. Einbauvorschrift bestimmen. Glasdaten mit dem
+    Lieferanten abgleichen. Getriebe-/Scherengrößen sind FFB/FFH-abhängige Richtgrößen.
   </p>
 </section>
 
@@ -483,38 +512,38 @@ function berechne(i) {
   fluegel.forEach(f => {
     const gGr = getriebeGr(f.ffh), sGr = schereGr(f.ffb);
     if (f.art === 'dk') {
-      add('ecklager', 'Ecklager', 1);
-      add('scherenlager', 'Scherenlager', 1);
-      add('schere_' + sGr, 'Ausstellschere ' + sGr, 1, 'Größe nach FFB ' + fmtMM(f.ffb) + ' mm');
-      if (f.ffb > 1100) add('zusatzschere', 'Zusatzschere', 1, 'ab FFB > 1100 mm empfohlen');
-      add('getriebe_dk_' + gGr, 'DK-Getriebe ' + gGr, 1, 'Größe nach FFH ' + fmtMM(f.ffh) + ' mm');
-      add('eckumlenkung', 'Eckumlenkung', 2);
+      add('ecklager', 'Ecklager + Ecklagerband', 1);
+      add('scherenlager', 'Scherenlagerband', 1);
+      add('schere_' + sGr, 'Scherenarm ' + sGr, 1, 'Richtgröße nach FFB ' + fmtMM(f.ffb) + ' mm');
+      if (f.ffb > 1100) add('zusatzschere', 'Zusatzschere TITAN', 1, 'ab FFB > 1100 mm empfohlen');
+      add('getriebe_dk_' + gGr, 'DK-Getriebe TITAN AF ' + gGr, 1, 'Richtgröße nach FFH ' + fmtMM(f.ffh) + ' mm');
+      add('eckumlenkung', 'Eckumlenkung VSO', 2);
       const mvG = f.ffh > 1800 ? 2 : (f.ffh > 1200 ? 1 : 0);
       const mvB = f.ffh > 1400 ? 1 : 0;
       const zvU = f.ffb > 1000 ? 1 : 0;
-      add('mv_griff', 'Mittelverriegelung griffseitig', mvG, 'ab FFH > 1200 mm');
-      add('mv_band', 'Mittelverriegelung bandseitig', mvB, 'ab FFH > 1400 mm');
+      add('mv_griff', 'Mittelverriegelung MV griffseitig', mvG, 'ab FFH > 1200 mm');
+      add('mv_band', 'Mittelverriegelung MV bandseitig', mvB, 'ab FFH > 1400 mm');
       add('zv_unten', 'Zusatzverriegelung unten', zvU, 'ab FFB > 1000 mm');
-      add('schliessblech', 'Schließbleche', 4 + mvG + mvB + zvU + (f.ffb > 800 ? 1 : 0));
-      add('griff', 'Fenstergriff / Olive', 1, i.din);
+      add('schliessblech', 'Schließbleche (inkl. Kippschließblech)', 4 + mvG + mvB + zvU + (f.ffb > 800 ? 1 : 0));
+      add('griff', 'Fenstergriff Si-line', 1, i.din);
     } else if (f.art === 'dreh') {
-      add('ecklager', 'Ecklager', 1);
-      add('drehband', 'Drehband oben', 1);
-      add('getriebe_d_' + gGr, 'Dreh-Getriebe ' + gGr, 1, 'Größe nach FFH ' + fmtMM(f.ffh) + ' mm');
+      add('ecklager', 'Ecklager + Ecklagerband', 1);
+      add('drehband', 'Drehlagerband oben', 1);
+      add('getriebe_d_' + gGr, 'Dreh-Getriebe TITAN AF ' + gGr, 1, 'Richtgröße nach FFH ' + fmtMM(f.ffh) + ' mm');
       const mvG = f.ffh > 1200 ? 1 : 0;
-      add('mv_griff', 'Mittelverriegelung griffseitig', mvG, 'ab FFH > 1200 mm');
+      add('mv_griff', 'Mittelverriegelung MV griffseitig', mvG, 'ab FFH > 1200 mm');
       add('schliessblech', 'Schließbleche', 3 + mvG);
-      add('griff', 'Fenstergriff / Olive', 1, i.din);
+      add('griff', 'Fenstergriff Si-line', 1, i.din);
     } else if (f.art === 'kipp') {
       add('kipplager', 'Kipplager (unten)', 2);
-      add('kippschere', 'Kippschere / Fangschere', f.ffb > 1000 ? 2 : 1);
-      add('kippverschluss', 'Kippverschluss / Getriebe', 1);
+      add('kippschere', 'Fangschere / Kippschere', f.ffb > 1000 ? 2 : 1);
+      add('kippverschluss', 'Kippverschluss-Getriebe', 1);
       add('schliessblech', 'Schließbleche', 2);
-      add('griff', 'Fenstergriff / Olive', 1);
+      add('griff', 'Fenstergriff Si-line', 1);
     } else if (f.art === 'stulp') {
-      add('stulpgetriebe_' + gGr, 'Stulpgetriebe ' + gGr, 1, 'Größe nach FFH ' + fmtMM(f.ffh) + ' mm');
-      add('ecklager', 'Ecklager', 1);
-      add('drehband', 'Drehband oben', 1);
+      add('stulpgetriebe_' + gGr, 'Stulpflügelgetriebe TITAN AF ' + gGr, 1, 'Richtgröße nach FFH ' + fmtMM(f.ffh) + ' mm');
+      add('ecklager', 'Ecklager + Ecklagerband', 1);
+      add('drehband', 'Drehlagerband oben', 1);
       add('schliesskloben', 'Schließkloben oben/unten', 2);
     }
   });
@@ -574,8 +603,86 @@ function berechne(i) {
 
 /* ---------------- Darstellung ---------------- */
 function tabelle(kopf, zeilen) {
-  return '<table><thead><tr>' + kopf.map(k => '<th' + (k.num ? ' class="num"' : '') + '>' + k.t + '</th>').join('') +
-    '</tr></thead><tbody>' + zeilen.join('') + '</tbody></table>';
+  return '<div class="tblwrap"><table><thead><tr>' + kopf.map(k => '<th' + (k.num ? ' class="num"' : '') + '>' + k.t + '</th>').join('') +
+    '</tr></thead><tbody>' + zeilen.join('') + '</tbody></table></div>';
+}
+
+/* ---------------- Fensterzeichnung (SVG, Ansicht von innen) ---------------- */
+function fensterSVG(r) {
+  const i = r.inp, p = i.profil;
+  const W = r.ram.b, H = r.ram.h;
+  const maxPx = 300, rand = 34;
+  const sc = maxPx / Math.max(W, H);
+  const w = W * sc, h = H * sc;
+  const fb = Math.max(4, p.rahmenB * sc);
+  const flb = Math.max(3.5, p.fluegelB * sc);
+  const pfb = Math.max(5, p.pfostenB * sc);
+  const el = [];
+  const R = (x, y, wi, hi, cls) =>
+    el.push('<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + Math.max(1, wi).toFixed(1) +
+      '" height="' + Math.max(1, hi).toFixed(1) + '" class="' + cls + '"/>');
+  const L = (x1, y1, x2, y2, cls) =>
+    el.push('<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) +
+      '" y2="' + y2.toFixed(1) + '" class="' + cls + '"/>');
+
+  // Öffnungssymbole: Spitze des Dreiecks zeigt zur Bandseite (Ansicht von innen)
+  const symbole = (x, y, wi, hi, art, band) => {
+    if (art === 'dreh' || art === 'dk' || art === 'stulp') {
+      const ax = band === 'L' ? x : x + wi;          // Bandseite
+      const gx = band === 'L' ? x + wi : x;          // Griffseite
+      L(gx, y, ax, y + hi / 2, 'sv-sym');
+      L(gx, y + hi, ax, y + hi / 2, 'sv-sym');
+    }
+    if (art === 'kipp' || art === 'dk') {
+      L(x, y, x + wi / 2, y + hi, 'sv-sym');         // Band unten → Spitze unten Mitte
+      L(x + wi, y, x + wi / 2, y + hi, 'sv-sym');
+    }
+  };
+  const fluegelZeichnen = (x, y, wi, hi, art, band) => {
+    R(x, y, wi, hi, 'sv-fluegel');
+    R(x + flb, y + flb, wi - 2 * flb, hi - 2 * flb, 'sv-glas');
+    symbole(x + flb, y + flb, wi - 2 * flb, hi - 2 * flb, art, band);
+    const gx = band === 'L' ? x + wi - flb / 2 : x + flb / 2; // Griff auf der Bandgegenseite
+    el.push('<circle cx="' + gx.toFixed(1) + '" cy="' + (y + hi / 2).toFixed(1) + '" r="3" class="sv-griff"/>');
+  };
+
+  R(0, 0, w, h, 'sv-rahmen');
+  const ox = fb, oy = fb, ow = w - 2 * fb, oh = h - 2 * fb;
+  const bandVon = din => din === 'DIN links' ? 'L' : 'R';
+
+  if (i.art === 'fest') {
+    if (i.teilung === 'pfosten') {
+      const feldW = (ow - pfb) / 2;
+      R(ox, oy, feldW, oh, 'sv-glas');
+      R(ox + feldW, oy, pfb, oh, 'sv-pfosten');
+      R(ox + feldW + pfb, oy, feldW, oh, 'sv-glas');
+    } else {
+      R(ox, oy, ow, oh, 'sv-glas');
+    }
+  } else if (i.teilung === '1') {
+    fluegelZeichnen(ox, oy, ow, oh, i.art, bandVon(i.din));
+  } else if (i.teilung === 'stulp') {
+    const halbe = ow / 2;
+    fluegelZeichnen(ox, oy, halbe, oh, i.art, 'L');
+    fluegelZeichnen(ox + halbe, oy, halbe, oh, 'stulp', 'R');
+    L(ox + halbe, oy, ox + halbe, oy + oh, 'sv-stulp');
+  } else { // pfosten
+    const flW = (ow - pfb) / 2;
+    fluegelZeichnen(ox, oy, flW, oh, i.art, 'L');
+    R(ox + flW, oy, pfb, oh, 'sv-pfosten');
+    fluegelZeichnen(ox + flW + pfb, oy, flW, oh, i.art, 'R');
+  }
+
+  // Maßlinien
+  const mY = h + 16, mX = w + 16;
+  L(0, mY, w, mY, 'sv-sym'); L(0, mY - 4, 0, mY + 4, 'sv-sym'); L(w, mY - 4, w, mY + 4, 'sv-sym');
+  el.push('<text x="' + (w / 2).toFixed(1) + '" y="' + (mY + 14) + '" text-anchor="middle" class="sv-mass">' + fmtMM(W) + '</text>');
+  L(mX, 0, mX, h, 'sv-sym'); L(mX - 4, 0, mX + 4, 0, 'sv-sym'); L(mX - 4, h, mX + 4, h, 'sv-sym');
+  el.push('<text x="' + (mX + 6) + '" y="' + (h / 2).toFixed(1) + '" class="sv-mass" transform="rotate(90 ' + (mX + 6) + ' ' + (h / 2).toFixed(1) + ')" text-anchor="middle">' + fmtMM(H) + '</text>');
+
+  return '<figure><svg viewBox="-4 -4 ' + (w + rand + 4) + ' ' + (h + rand + 4) + '" width="' + Math.round(w + rand) + '" role="img" aria-label="Fensteransicht">' +
+    el.join('') + '</svg><figcaption>' + i.pos + ' – Ansicht von innen, ' + artText(i) +
+    (r.fluegel.length && i.teilung === '1' ? ', ' + i.din : '') + '</figcaption></figure>';
 }
 
 function ergebnisHTML(r) {
@@ -587,6 +694,9 @@ function ergebnisHTML(r) {
        r.holz.label + ', ' + r.glas.label + (r.fluegel.length ? ', ' + i.din : '') + '</p>';
 
   r.warnungen.forEach(w => h += '<div class="warnung">⚠ ' + w + '</div>');
+
+  // Zeichnung
+  h += '<h3>Ansicht</h3><div class="zeichnung">' + fensterSVG(r) + '</div>';
 
   // Maßkette
   h += '<h3>Maßkette</h3><div class="kette">';
@@ -621,7 +731,7 @@ function ergebnisHTML(r) {
   );
 
   // Beschläge
-  h += '<h3>Beschlagliste (je Fenster)</h3>';
+  h += '<h3>Beschlagliste – Siegenia TITAN AF (je Fenster)</h3>';
   h += r.beschlag.length
     ? tabelle([{ t: 'Beschlagteil' }, { t: 'Anzahl', num: 1 }, { t: 'Hinweis' }],
         r.beschlag.map(b => '<tr><td>' + b.label + '</td><td class="num">' + b.anzahl + '</td><td>' + (b.hinweis || '') + '</td></tr>'))
