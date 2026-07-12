@@ -625,17 +625,18 @@ function fensterSVG(r) {
     el.push('<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) +
       '" y2="' + y2.toFixed(1) + '" class="' + cls + '"/>');
 
-  // Öffnungssymbole: Spitze des Dreiecks zeigt zur Bandseite (Ansicht von innen)
+  // Öffnungssymbole (Ansicht von innen): Spitze des Dreiecks zeigt zur Griffseite,
+  // die Linienenden liegen an der Bandseite. Kipp: Bänder unten → Spitze oben Mitte.
   const symbole = (x, y, wi, hi, art, band) => {
     if (art === 'dreh' || art === 'dk' || art === 'stulp') {
-      const ax = band === 'L' ? x : x + wi;          // Bandseite
-      const gx = band === 'L' ? x + wi : x;          // Griffseite
-      L(gx, y, ax, y + hi / 2, 'sv-sym');
-      L(gx, y + hi, ax, y + hi / 2, 'sv-sym');
+      const bx = band === 'L' ? x : x + wi;          // Bandseite (Linienenden)
+      const gx = band === 'L' ? x + wi : x;          // Griffseite (Spitze)
+      L(bx, y, gx, y + hi / 2, 'sv-sym');
+      L(bx, y + hi, gx, y + hi / 2, 'sv-sym');
     }
     if (art === 'kipp' || art === 'dk') {
-      L(x, y, x + wi / 2, y + hi, 'sv-sym');         // Band unten → Spitze unten Mitte
-      L(x + wi, y, x + wi / 2, y + hi, 'sv-sym');
+      L(x, y + hi, x + wi / 2, y, 'sv-sym');         // Bänder unten → Spitze oben Mitte
+      L(x + wi, y + hi, x + wi / 2, y, 'sv-sym');
     }
   };
   const fluegelZeichnen = (x, y, wi, hi, art, band) => {
