@@ -36,6 +36,24 @@
   }
   header h1 { margin: 0; font-size: 1.35rem; }
   header p { margin: 4px 0 0; opacity: .85; font-size: .9rem; }
+  nav.tabs {
+    display: flex;
+    background: var(--holz-dunkel);
+    padding: 0 12px 10px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  nav.tabs button {
+    background: rgba(255,255,255,.15);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: .9rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  nav.tabs button.aktiv { background: var(--holz-hell); color: var(--holz-dunkel); }
   .panel {
     background: var(--weiss);
     padding: 16px 20px;
@@ -50,7 +68,8 @@
     padding-bottom: 4px;
     margin: 4px 0 12px;
   }
-  h3 { font-size: .95rem; color: var(--holz-dunkel); margin: 14px 0 6px; }
+  h3 { font-size: .95rem; color: var(--holz-dunkel); margin: 16px 0 6px; }
+  h4 { font-size: .85rem; color: var(--holz-dunkel); margin: 12px 0 4px; }
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -65,25 +84,27 @@
     font-size: .95rem;
     background: #fff;
   }
+  input[type="checkbox"] { width: auto; transform: scale(1.3); margin: 10px 4px 0 2px; }
   input:focus, select:focus { outline: 2px solid var(--holz); }
-  details {
+  details.einstellungen {
     margin-top: 14px;
     border: 1px dashed var(--linie);
     border-radius: 8px;
     padding: 8px 12px;
     background: var(--holz-hell);
   }
-  details summary { cursor: pointer; font-weight: 600; color: var(--holz-dunkel); font-size: .9rem; }
-  details .grid { margin-top: 10px; }
+  details.einstellungen summary { cursor: pointer; font-weight: 600; color: var(--holz-dunkel); font-size: .9rem; }
+  details.einstellungen .grid { margin-top: 10px; }
   table {
     width: 100%;
     border-collapse: collapse;
     font-size: .88rem;
     margin: 6px 0 14px;
   }
-  th, td { border: 1px solid var(--linie); padding: 5px 8px; text-align: left; }
+  th, td { border: 1px solid var(--linie); padding: 5px 8px; text-align: left; vertical-align: top; }
   th { background: var(--holz-hell); color: var(--holz-dunkel); }
   td.num, th.num { text-align: right; white-space: nowrap; }
+  td input { padding: 4px 6px; font-size: .85rem; }
   .btnrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
   button {
     border: none;
@@ -99,6 +120,7 @@
   button.sekundaer { background: #e2d7c3; color: var(--holz-dunkel); }
   button.sekundaer:hover { background: #d4c5a9; }
   button.gefahr { background: #f3d3d3; color: var(--rot); }
+  button.mini { padding: 4px 10px; font-size: .85rem; }
   .warnung {
     background: #fdecea;
     border-left: 4px solid var(--rot);
@@ -119,7 +141,7 @@
   }
   .kette {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 8px;
     margin-bottom: 10px;
   }
@@ -147,6 +169,18 @@
   .sv-griff { fill: #2b2b2b; }
   .sv-stulp { stroke: #5d4630; stroke-width: 1.4; stroke-dasharray: 5 3; }
   .sv-mass { font-size: 11px; fill: #444; }
+  .ausfuehrung {
+    display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 4px;
+  }
+  .ausfuehrung span {
+    background: var(--holz-hell);
+    border: 1px solid var(--linie);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: .78rem;
+    color: var(--holz-dunkel);
+  }
+  .summe { font-weight: 700; background: var(--holz-hell); }
   @media (max-width: 640px) {
     body { padding: 6px; }
     .panel { padding: 12px 10px; }
@@ -160,8 +194,8 @@
   }
   @media print {
     body { background: #fff; padding: 0; }
-    .nur-bildschirm, header p, .btnrow, details { display: none !important; }
-    .panel { border: none; padding: 8px 0; }
+    .nur-bildschirm, header p, .btnrow, details.einstellungen, nav.tabs { display: none !important; }
+    .panel { border: none; padding: 8px 0; display: block !important; }
     header { background: none; color: #000; padding: 0 0 8px; border-bottom: 2px solid #000; border-radius: 0; }
   }
 </style>
@@ -171,22 +205,61 @@
 
 <header>
   <h1>Holzfenster-Planer &nbsp;IV 68 / IV 78</h1>
-  <p>Maßketten, Zuschnitt, Glasmaße, Siegenia-Beschlag und Materialbedarf für Holzfenster – für die Werkstatt.</p>
+  <p>Maßketten, Zuschnitt, Glasmaße, Siegenia-Beschlag, Kalkulation und Bestelllisten – für die Werkstatt.</p>
 </header>
+<nav class="tabs nur-bildschirm">
+  <button data-tab="erfassen" class="aktiv">Erfassen</button>
+  <button data-tab="projekt">Projekt &amp; Bestelllisten</button>
+  <button data-tab="stamm">Preise &amp; Stammdaten</button>
+</nav>
 
-<!-- ================= EINGABE ================= -->
-<section class="panel nur-bildschirm">
+<!-- ================= TAB: ERFASSEN ================= -->
+<section class="panel nur-bildschirm" id="tab-erfassen">
   <h2>Fenster erfassen</h2>
+
+  <h3 style="margin-top:4px">Auftrag</h3>
   <div class="grid">
     <div>
-      <label for="pos">Position / Bezeichnung</label>
-      <input id="pos" type="text" placeholder="z. B. EG Küche" value="Pos. 1">
+      <label for="kommission">Kommission / Kundenname</label>
+      <input id="kommission" type="text" placeholder="z. B. BV Müller">
     </div>
+    <div>
+      <label for="etage">Lage / Etage</label>
+      <select id="etage">
+        <option value="">–</option>
+        <option>KG</option><option>EG</option><option>1. OG</option>
+        <option>2. OG</option><option>3. OG</option><option>DG</option>
+      </select>
+    </div>
+    <div>
+      <label for="raum">Raum / Ort</label>
+      <input id="raum" type="text" list="raumliste" placeholder="z. B. Wohnzimmer">
+      <datalist id="raumliste">
+        <option>Wohnzimmer</option><option>Schlafzimmer</option><option>Kinderzimmer</option>
+        <option>Küche</option><option>Bad</option><option>WC</option><option>Flur</option>
+        <option>Esszimmer</option><option>Büro</option><option>Keller</option><option>HWR</option>
+      </datalist>
+    </div>
+    <div>
+      <label for="pos">Position / Bezeichnung</label>
+      <input id="pos" type="text" placeholder="z. B. Pos. 1" value="Pos. 1">
+    </div>
+  </div>
+
+  <h3>Fenster</h3>
+  <div class="grid">
     <div>
       <label for="system">Profilsystem</label>
       <select id="system">
         <option value="iv68">IV 68</option>
         <option value="iv78">IV 78</option>
+      </select>
+    </div>
+    <div>
+      <label for="typ">Ausführung</label>
+      <select id="typ">
+        <option value="standard">Standard (Regenschutzschiene, 20° Aufdeckschräge)</option>
+        <option value="denkmal">Denkmalschutz (Wetterschenkel, 45° Aufdeckschräge)</option>
       </select>
     </div>
     <div>
@@ -204,6 +277,21 @@
         <option value="1">1-flügelig</option>
         <option value="stulp">2-flügelig mit Stulp</option>
         <option value="pfosten">2-flügelig mit Pfosten</option>
+      </select>
+    </div>
+    <div>
+      <label for="rc">Sicherheit</label>
+      <select id="rc">
+        <option value="std">Standard</option>
+        <option value="rc1">RC 1 N</option>
+        <option value="rc2">RC 2</option>
+      </select>
+    </div>
+    <div>
+      <label for="din">Anschlag (DIN)</label>
+      <select id="din">
+        <option value="DIN links">DIN links</option>
+        <option value="DIN rechts">DIN rechts</option>
       </select>
     </div>
     <div>
@@ -228,70 +316,177 @@
     <div>
       <label for="holz">Holzart</label>
       <select id="holz">
-        <option value="fichte">Fichte (~470 kg/m³)</option>
-        <option value="kiefer">Kiefer (~520 kg/m³)</option>
-        <option value="laerche">Lärche (~590 kg/m³)</option>
-        <option value="meranti">Meranti (~510 kg/m³)</option>
-        <option value="eiche">Eiche (~690 kg/m³)</option>
-      </select>
-    </div>
-    <div>
-      <label for="glas">Verglasung</label>
-      <select id="glas"></select>
-    </div>
-    <div>
-      <label for="din">Anschlag (DIN)</label>
-      <select id="din">
-        <option value="DIN links">DIN links</option>
-        <option value="DIN rechts">DIN rechts</option>
+        <option value="fichte">Fichte</option>
+        <option value="kiefer">Kiefer</option>
+        <option value="laerche">Lärche</option>
+        <option value="meranti">Meranti</option>
+        <option value="eiche">Eiche</option>
       </select>
     </div>
   </div>
 
-  <details id="profildetails">
-    <summary>Profil- &amp; Fertigungseinstellungen (anpassbar an eigene Kantel / eigenes Beschlagsystem)</summary>
+  <h3>Glas</h3>
+  <div class="grid">
+    <div>
+      <label for="glas">Glasaufbau</label>
+      <select id="glas"></select>
+    </div>
+    <div>
+      <label for="glasTyp">Glasart</label>
+      <select id="glasTyp">
+        <option value="klar">Klarglas (Float)</option>
+        <option value="ornament">Ornamentglas</option>
+      </select>
+    </div>
+    <div id="ornamentFeld" style="display:none">
+      <label for="ornament">Ornament</label>
+      <select id="ornament">
+        <option>Ornament 504</option><option>Chinchilla</option><option>Satinato</option>
+        <option>Mastercarré</option><option>Masterpoint</option><option>Altdeutsch K</option>
+      </select>
+    </div>
+    <div>
+      <label for="randverbund">Randverbund (Farbe)</label>
+      <select id="randverbund">
+        <option>Alu silber</option><option>Schwarz</option><option>Weiß</option><option>Edelstahl</option>
+      </select>
+    </div>
+    <div>
+      <label for="vsg">VSG (Verbundsicherheitsglas)</label>
+      <input id="vsg" type="checkbox">
+    </div>
+    <div>
+      <label for="glasExtra">Besonderheiten Glas</label>
+      <input id="glasExtra" type="text" placeholder="z. B. 6 mm außen, Schallschutz">
+    </div>
+    <div>
+      <label for="silikon">Silikonfarbe (Otto Seal S 110)</label>
+      <select id="silikon">
+        <option>Transparent</option><option>Weiß</option><option>Lichtgrau</option>
+        <option>Grau</option><option>Anthrazit</option><option>Schwarz</option>
+        <option>Braun</option><option>Dunkelbraun</option><option>Bahamabeige</option>
+      </select>
+    </div>
+  </div>
+
+  <h3>Oberfläche</h3>
+  <div class="grid">
+    <div>
+      <label for="obInnenTyp">Innen – Beschichtung</label>
+      <select id="obInnenTyp">
+        <option value="lasur">Remmers Lasur</option>
+        <option value="ral">RAL-Farbe (deckend)</option>
+      </select>
+    </div>
+    <div>
+      <label for="obInnenTon">Innen – Farbton</label>
+      <input id="obInnenTon" type="text" list="tonliste" placeholder="z. B. Eiche hell / RAL 9016">
+    </div>
+    <div>
+      <label for="obAussenTyp">Außen – Beschichtung</label>
+      <select id="obAussenTyp">
+        <option value="lasur">Remmers Lasur</option>
+        <option value="ral">RAL-Farbe (deckend)</option>
+      </select>
+    </div>
+    <div>
+      <label for="obAussenTon">Außen – Farbton</label>
+      <input id="obAussenTon" type="text" list="tonliste" placeholder="z. B. Nussbaum / RAL 7016">
+    </div>
+    <datalist id="tonliste">
+      <option>Farblos</option><option>Kiefer</option><option>Eiche hell</option>
+      <option>Eiche rustikal</option><option>Teak</option><option>Nussbaum</option>
+      <option>Mahagoni</option><option>Palisander</option><option>RAL 9016</option>
+      <option>RAL 7016</option><option>RAL 6009</option><option>RAL 3011</option>
+    </datalist>
+  </div>
+
+  <div id="regenBereich">
+    <h3>Regenschutzschiene</h3>
     <div class="grid">
-      <div><label for="p_rahmenB">Blendrahmen Ansichtsbreite [mm]</label><input id="p_rahmenB" type="number" step="1"></div>
-      <div><label for="p_fluegelB">Flügel Ansichtsbreite [mm]</label><input id="p_fluegelB" type="number" step="1"></div>
-      <div><label for="p_pfostenB">Pfosten Ansichtsbreite [mm]</label><input id="p_pfostenB" type="number" step="1"></div>
-      <div><label for="p_anschlag">Anschlag-/Falzbreite Rahmen [mm]</label><input id="p_anschlag" type="number" step="1"></div>
-      <div><label for="p_falzluft">Falzluft umlaufend [mm]</label><input id="p_falzluft" type="number" step="1"></div>
+      <div>
+        <label for="regenFarbe">Farbe</label>
+        <select id="regenFarbe">
+          <option>EV1 Silber</option><option>Weiß (RAL 9016)</option>
+          <option>Anthrazit (RAL 7016)</option><option>DB 703</option>
+          <option>Dunkelbronze</option><option>Schwarz</option>
+        </select>
+      </div>
+      <div>
+        <label for="regenLaenge">Länge [mm] (leer = automatisch)</label>
+        <input id="regenLaenge" type="number" min="0" step="1" placeholder="auto">
+      </div>
+    </div>
+  </div>
+
+  <details class="einstellungen" id="profildetails">
+    <summary>Profil- &amp; Abzugsmaße (Werkstattformeln, anpassbar)</summary>
+    <div class="grid">
+      <div><label for="p_rahmenB">Blendrahmenbreite [mm]</label><input id="p_rahmenB" type="number" step="1"></div>
+      <div><label for="p_fluegelB">Flügelbreite [mm]</label><input id="p_fluegelB" type="number" step="1"></div>
+      <div><label for="p_abzugB">Abzug Flügelbreite 1-flg. [mm]</label><input id="p_abzugB" type="number" step="1"></div>
+      <div><label for="p_abzugH">Abzug Flügelhöhe [mm]</label><input id="p_abzugH" type="number" step="1"></div>
+      <div><label for="p_abzugStulp">Abzug Breite Stulp gesamt [mm]</label><input id="p_abzugStulp" type="number" step="1"></div>
+      <div><label for="p_glasAbzugB">Abzug Glasmaß Breite [mm]</label><input id="p_glasAbzugB" type="number" step="1"></div>
+      <div><label for="p_glasAbzugH">Abzug Glasmaß Höhe [mm]</label><input id="p_glasAbzugH" type="number" step="1"></div>
+      <div><label for="p_regenAbzug">Abzug Regenschutzschiene [mm]</label><input id="p_regenAbzug" type="number" step="1"></div>
+      <div><label for="p_pfostenB">Pfostenbreite [mm]</label><input id="p_pfostenB" type="number" step="1"></div>
+      <div><label for="p_anschlag">Anschlagbreite Rahmen [mm]</label><input id="p_anschlag" type="number" step="1"></div>
+      <div><label for="p_falzluft">Falzluft (Pfostenfenster) [mm]</label><input id="p_falzluft" type="number" step="1"></div>
       <div><label for="p_ueberschlag">Überschlag Flügel [mm]</label><input id="p_ueberschlag" type="number" step="1"></div>
-      <div><label for="p_glaseinstand">Glaseinstand [mm]</label><input id="p_glaseinstand" type="number" step="1"></div>
+      <div><label for="p_glaseinstand">Glaseinstand Festverglasung [mm]</label><input id="p_glaseinstand" type="number" step="1"></div>
       <div><label for="p_glasspiel">Glasspiel je Seite [mm]</label><input id="p_glasspiel" type="number" step="1"></div>
       <div><label for="p_zugabe">Zuschnittzugabe je Teil [mm]</label><input id="p_zugabe" type="number" step="1"></div>
       <div><label for="p_fuge">Anschlussfuge je Seite [mm]</label><input id="p_fuge" type="number" step="1"></div>
-      <div><label for="p_mittelfuge">Fuge zwischen Stulpflügeln [mm]</label><input id="p_mittelfuge" type="number" step="1"></div>
     </div>
+    <p class="hinweis">Die Abzugsmaße gelten für 80&nbsp;mm Blendrahmen / 80&nbsp;mm Flügel und passen sich
+      bei abweichenden Breiten automatisch an (je mm Mehrbreite: +2&nbsp;mm Abzug).</p>
   </details>
 
   <div class="btnrow">
     <button id="btnBerechnen">Berechnen</button>
     <button id="btnHinzufuegen" class="sekundaer">＋ Zur Positionsliste hinzufügen</button>
   </div>
-</section>
 
-<!-- ================= ERGEBNIS ================= -->
-<section class="panel" id="ergebnis">
-  <h2>Ergebnis</h2>
+  <h2 style="margin-top:20px">Ergebnis</h2>
   <div id="ergebnisInhalt"><p class="leer">Maße eingeben und auf „Berechnen“ klicken.</p></div>
 </section>
 
-<!-- ================= POSITIONSLISTE ================= -->
-<section class="panel" id="projekt">
+<!-- ================= TAB: PROJEKT ================= -->
+<section class="panel" id="tab-projekt" style="display:none">
   <h2>Positionsliste (Projekt)</h2>
   <div id="positionenInhalt"><p class="leer">Noch keine Positionen erfasst.</p></div>
-  <div id="gesamtInhalt"></div>
+  <div id="bestellInhalt"></div>
   <div class="btnrow nur-bildschirm">
     <button id="btnDrucken" class="sekundaer">🖨 Drucken / PDF</button>
     <button id="btnLeeren" class="gefahr">Positionsliste löschen</button>
   </div>
   <p class="hinweis">
-    Alle Werte sind <b>Richtwerte nach gängiger Werkstattpraxis</b> (DIN-68121-nahe Profile, Dreh-Kipp-Standardbeschlag).
-    Die Beschlagliste orientiert sich am <b>Siegenia TITAN AF</b>-Sortiment für Holzfenster – exakte Artikelnummern und
-    Bestellgrößen vor der Fertigung nach aktuellem Siegenia-Katalog bzw. Einbauvorschrift bestimmen. Glasdaten mit dem
-    Lieferanten abgleichen. Getriebe-/Scherengrößen sind FFB/FFH-abhängige Richtgrößen.
+    Alle Werte sind <b>Richtwerte nach Werkstattformel</b>. Die Beschlagliste orientiert sich am
+    <b>Siegenia TITAN AF</b>-Sortiment für Holzfenster – Artikelnummern unter „Preise &amp; Stammdaten“
+    aus dem aktuellen Siegenia-Katalog eintragen, dann erscheinen sie automatisch in den Bestelllisten.
+    Kantellängen werden auf volle 100&nbsp;mm aufgerundet (Lieferlängen 800–3500&nbsp;mm).
   </p>
+</section>
+
+<!-- ================= TAB: STAMMDATEN ================= -->
+<section class="panel nur-bildschirm" id="tab-stamm" style="display:none">
+  <h2>Preise &amp; Stammdaten</h2>
+  <p class="hinweis" style="margin:0 0 12px">
+    Einmal hinterlegen – wird lokal im Browser gespeichert. Preise fließen automatisch in die
+    Kalkulation jeder Position ein, Artikelnummern in die Beschlag-Bestellliste.
+  </p>
+  <h3>Materialpreise</h3>
+  <div id="matPreise"></div>
+  <h3>Beschlagteile Siegenia (Artikel-Nr. + Preis)</h3>
+  <div id="beschlagStamm"></div>
+  <h3>Kalkulationsaufschlag</h3>
+  <div class="grid" style="max-width:300px">
+    <div>
+      <label for="zuschlag">Gemeinkosten / Aufschlag [%]</label>
+      <input id="zuschlag" type="number" min="0" max="500" step="1">
+    </div>
+  </div>
 </section>
 
 </div>
@@ -299,29 +494,27 @@
 <script>
 'use strict';
 
-/* ---------------- Stammdaten ---------------- */
+/* ================= Stammdaten ================= */
 const SYSTEME = {
   iv68: {
     name: 'IV 68', tiefe: 68, maxGlas: 32,
-    rahmen:  { fertigB: 80, fertigT: 68, rohB: 86, rohT: 72 },
-    fluegel: { fertigB: 80, fertigT: 68, rohB: 86, rohT: 72 },
-    pfosten: { fertigB: 98, fertigT: 68, rohB: 105, rohT: 72 },
+    rahmen:  { rohB: 86, rohT: 72 },
+    pfosten: { rohB: 105, rohT: 72 },
     glasleiste: '20 × 25 mm',
     glas: [
-      { id: '2f24', label: '2-fach 4/16/4 – 24 mm (Ug ≈ 1,1)', dicke: 24, kgm2: 20 },
-      { id: '3f32', label: '3-fach 4/10/4/10/4 – 32 mm (Ug ≈ 0,8)', dicke: 32, kgm2: 30 }
+      { id: '2f24', label: '2-fach 4/16/4 – 24 mm (Ug ≈ 1,1)', dicke: 24, kgm2: 20, preisKey: 'glas_2f' },
+      { id: '3f32', label: '3-fach 4/10/4/10/4 – 32 mm (Ug ≈ 0,8)', dicke: 32, kgm2: 30, preisKey: 'glas_3f' }
     ]
   },
   iv78: {
     name: 'IV 78', tiefe: 78, maxGlas: 48,
-    rahmen:  { fertigB: 80, fertigT: 78, rohB: 86, rohT: 82 },
-    fluegel: { fertigB: 80, fertigT: 78, rohB: 86, rohT: 82 },
-    pfosten: { fertigB: 98, fertigT: 78, rohB: 105, rohT: 82 },
+    rahmen:  { rohB: 86, rohT: 82 },
+    pfosten: { rohB: 105, rohT: 82 },
     glasleiste: '20 × 28 mm',
     glas: [
-      { id: '2f28', label: '2-fach 4/20/4 – 28 mm (Ug ≈ 1,1)', dicke: 28, kgm2: 20 },
-      { id: '3f36', label: '3-fach 4/12/4/12/4 – 36 mm (Ug ≈ 0,7)', dicke: 36, kgm2: 30 },
-      { id: '3f48', label: '3-fach 4/18/4/18/4 – 48 mm (Ug ≈ 0,6)', dicke: 48, kgm2: 30 }
+      { id: '2f28', label: '2-fach 4/20/4 – 28 mm (Ug ≈ 1,1)', dicke: 28, kgm2: 20, preisKey: 'glas_2f' },
+      { id: '3f36', label: '3-fach 4/12/4/12/4 – 36 mm (Ug ≈ 0,7)', dicke: 36, kgm2: 30, preisKey: 'glas_3f' },
+      { id: '3f48', label: '3-fach 4/18/4/18/4 – 48 mm (Ug ≈ 0,6)', dicke: 48, kgm2: 30, preisKey: 'glas_3f' }
     ]
   }
 };
@@ -334,176 +527,286 @@ const HOLZ = {
   eiche:   { label: 'Eiche',   dichte: 690 }
 };
 
-const PROFIL_DEFAULTS = {
-  anschlag: 24,      // Falz-/Anschlagbreite im Blendrahmen
-  falzluft: 4,       // Luft Flügelfalz zu Rahmenfalz, umlaufend
-  ueberschlag: 18,   // Flügelüberschlag
-  glaseinstand: 18,  // Glaseinstand im Falz
-  glasspiel: 5,      // Luft Glas zu Falzgrund je Seite
-  zugabe: 50,        // Zuschnittzugabe je Teil (Zapfen/Schlitz, Konterprofil)
-  fuge: 15,          // Anschlussfuge Rohbau je Seite
-  mittelfuge: 4      // Fuge zwischen Stulpflügeln
+const TYPEN = {
+  standard: { label: 'Standard', schraege: 20, wetterschutz: 'Regenschutzschiene Alu' },
+  denkmal:  { label: 'Denkmalschutz', schraege: 45, wetterschutz: 'Wetterschenkel Holz' }
 };
 
+const RC = {
+  std: { label: 'Standard' },
+  rc1: { label: 'RC 1 N' },
+  rc2: { label: 'RC 2' }
+};
+
+const PROFIL_DEFAULTS = {
+  rahmenB: 80, fluegelB: 80, pfostenB: 98,
+  abzugB: 78, abzugH: 93, abzugStulp: 48,
+  glasAbzugB: 212, glasAbzugH: 227, regenAbzug: 167,
+  anschlag: 24, falzluft: 4, ueberschlag: 18,
+  glaseinstand: 18, glasspiel: 5, zugabe: 50, fuge: 15
+};
+
+/* Beschlag-Stammdaten (Siegenia TITAN AF, Holz) */
+const BESCHLAG_DEF = [
+  { key: 'ecklager',      label: 'Ecklager + Ecklagerband' },
+  { key: 'scherenlager',  label: 'Scherenlagerband' },
+  { key: 'schere_1',      label: 'Scherenarm Gr. 1' },
+  { key: 'schere_2',      label: 'Scherenarm Gr. 2' },
+  { key: 'schere_3',      label: 'Scherenarm Gr. 3' },
+  { key: 'schere_4',      label: 'Scherenarm Gr. 4' },
+  { key: 'zusatzschere',  label: 'Zusatzschere TITAN' },
+  { key: 'getr_dk_1',     label: 'DK-Getriebe TITAN AF Gr. 1' },
+  { key: 'getr_dk_2',     label: 'DK-Getriebe TITAN AF Gr. 2' },
+  { key: 'getr_dk_3',     label: 'DK-Getriebe TITAN AF Gr. 3' },
+  { key: 'getr_dk_4',     label: 'DK-Getriebe TITAN AF Gr. 4' },
+  { key: 'getr_d_1',      label: 'Dreh-Getriebe Gr. 1' },
+  { key: 'getr_d_2',      label: 'Dreh-Getriebe Gr. 2' },
+  { key: 'getr_d_3',      label: 'Dreh-Getriebe Gr. 3' },
+  { key: 'getr_d_4',      label: 'Dreh-Getriebe Gr. 4' },
+  { key: 'getr_st_1',     label: 'Stulpflügelgetriebe Gr. 1' },
+  { key: 'getr_st_2',     label: 'Stulpflügelgetriebe Gr. 2' },
+  { key: 'getr_st_3',     label: 'Stulpflügelgetriebe Gr. 3' },
+  { key: 'getr_st_4',     label: 'Stulpflügelgetriebe Gr. 4' },
+  { key: 'eckuml',        label: 'Eckumlenkung VSO' },
+  { key: 'mv',            label: 'Mittelverriegelung MV' },
+  { key: 'zv',            label: 'Zusatzverriegelung unten' },
+  { key: 'pilz',          label: 'Pilzkopf-Zusatzverriegelung (RC)' },
+  { key: 'sb',            label: 'Schließblech Standard' },
+  { key: 'sb_rc',         label: 'Sicherheitsschließblech RC' },
+  { key: 'drehband',      label: 'Drehlagerband oben' },
+  { key: 'kipplager',     label: 'Kipplager' },
+  { key: 'fangschere',    label: 'Fangschere / Kippschere' },
+  { key: 'kippverschluss',label: 'Kippverschluss-Getriebe' },
+  { key: 'schliesskloben',label: 'Schließkloben' },
+  { key: 'griff',         label: 'Fenstergriff Si-line' },
+  { key: 'griff_ab',      label: 'Fenstergriff Si-line abschließbar' },
+  { key: 'schrauben',     label: 'Beschlagschrauben (Paket)' },
+  { key: 'kloetze',       label: 'Glasklötze (Satz je Feld)' }
+];
+const BESCHLAG_LABEL = Object.fromEntries(BESCHLAG_DEF.map(b => [b.key, b.label]));
+
+const MATERIAL_DEF = [
+  { key: 'holz_fichte',  label: 'Kantel Fichte',  einheit: '€/lfm' },
+  { key: 'holz_kiefer',  label: 'Kantel Kiefer',  einheit: '€/lfm' },
+  { key: 'holz_laerche', label: 'Kantel Lärche',  einheit: '€/lfm' },
+  { key: 'holz_meranti', label: 'Kantel Meranti', einheit: '€/lfm' },
+  { key: 'holz_eiche',   label: 'Kantel Eiche',   einheit: '€/lfm' },
+  { key: 'glasleiste',   label: 'Glasleiste',     einheit: '€/lfm' },
+  { key: 'glas_2f',      label: 'Isolierglas 2-fach', einheit: '€/m²' },
+  { key: 'glas_3f',      label: 'Isolierglas 3-fach', einheit: '€/m²' },
+  { key: 'zu_ornament',  label: 'Zuschlag Ornamentglas', einheit: '€/m²' },
+  { key: 'zu_vsg',       label: 'Zuschlag VSG', einheit: '€/m²' },
+  { key: 'dichtung',     label: 'Dichtung', einheit: '€/lfm' },
+  { key: 'silikon',      label: 'Otto Seal S 110', einheit: '€/Kartusche' },
+  { key: 'lasur',        label: 'Remmers Lasur', einheit: '€/l' },
+  { key: 'farbe',        label: 'RAL-Farbe deckend', einheit: '€/l' },
+  { key: 'regenschiene', label: 'Regenschutzschiene Alu', einheit: '€/lfm' }
+];
+
+/* ================= Hilfen ================= */
 const $ = id => document.getElementById(id);
 const fmtMM = n => new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(Math.round(n));
 const fmt = (n, d = 2) => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: d }).format(n);
+const fmtEur = n => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n) + ' €';
 
-/* ---------------- Richtgrößen Beschlag ---------------- */
-function getriebeGr(ffh) {
-  if (ffh <= 800) return 'Gr. 1';
-  if (ffh <= 1200) return 'Gr. 2';
-  if (ffh <= 1600) return 'Gr. 3';
-  return 'Gr. 4';
-}
-function schereGr(ffb) {
-  if (ffb <= 600) return 'Gr. 1';
-  if (ffb <= 800) return 'Gr. 2';
-  if (ffb <= 1100) return 'Gr. 3';
-  return 'Gr. 4';
-}
+function getriebeGr(ffh) { return ffh <= 800 ? 1 : ffh <= 1200 ? 2 : ffh <= 1600 ? 3 : 4; }
+function schereGr(ffb) { return ffb <= 600 ? 1 : ffb <= 800 ? 2 : ffb <= 1100 ? 3 : 4; }
+function kantelLaenge(mm) { return Math.max(800, Math.ceil(mm / 100) * 100); }
 
-/* ---------------- Eingaben lesen ---------------- */
+/* ================= Persistenz ================= */
+const LS_POS = 'holzfensterPlanerPositionen_v2';
+const LS_STAMM = 'holzfensterPlanerStamm_v1';
+const positionenLaden = () => { try { return JSON.parse(localStorage.getItem(LS_POS)) || []; } catch (e) { return []; } };
+const positionenSpeichern = l => localStorage.setItem(LS_POS, JSON.stringify(l));
+function stammLaden() {
+  let s;
+  try { s = JSON.parse(localStorage.getItem(LS_STAMM)) || {}; } catch (e) { s = {}; }
+  return { artnr: s.artnr || {}, preisB: s.preisB || {}, preisM: s.preisM || {}, zuschlag: +s.zuschlag || 0 };
+}
+let stamm = stammLaden();
+const stammSpeichern = () => localStorage.setItem(LS_STAMM, JSON.stringify(stamm));
+const pB = k => +stamm.preisB[k] || 0;
+const pM = k => +stamm.preisM[k] || 0;
+const artNr = k => stamm.artnr[k] || '';
+
+/* ================= Eingaben ================= */
 function profilLesen() {
-  return {
-    rahmenB: +$('p_rahmenB').value,
-    fluegelB: +$('p_fluegelB').value,
-    pfostenB: +$('p_pfostenB').value,
-    anschlag: +$('p_anschlag').value,
-    falzluft: +$('p_falzluft').value,
-    ueberschlag: +$('p_ueberschlag').value,
-    glaseinstand: +$('p_glaseinstand').value,
-    glasspiel: +$('p_glasspiel').value,
-    zugabe: +$('p_zugabe').value,
-    fuge: +$('p_fuge').value,
-    mittelfuge: +$('p_mittelfuge').value
-  };
+  const p = {};
+  Object.keys(PROFIL_DEFAULTS).forEach(k => p[k] = +$('p_' + k).value);
+  return p;
 }
-
 function eingabenLesen() {
   return {
+    kommission: $('kommission').value.trim(),
+    etage: $('etage').value,
+    raum: $('raum').value.trim(),
     pos: $('pos').value.trim() || 'Position',
     system: $('system').value,
+    typ: $('typ').value,
     art: $('art').value,
     teilung: $('art').value === 'fest' ? ($('teilung').value === 'stulp' ? '1' : $('teilung').value) : $('teilung').value,
+    rc: $('rc').value,
+    din: $('din').value,
     bezug: $('bezug').value,
     b: +$('breite').value,
     h: +$('hoehe').value,
     stueck: Math.max(1, Math.round(+$('stueck').value || 1)),
     holz: $('holz').value,
     glasId: $('glas').value,
-    din: $('din').value,
+    glasTyp: $('glasTyp').value,
+    ornament: $('ornament').value,
+    randverbund: $('randverbund').value,
+    vsg: $('vsg').checked,
+    glasExtra: $('glasExtra').value.trim(),
+    silikon: $('silikon').value,
+    obInnenTyp: $('obInnenTyp').value,
+    obInnenTon: $('obInnenTon').value.trim(),
+    obAussenTyp: $('obAussenTyp').value,
+    obAussenTon: $('obAussenTon').value.trim(),
+    regenFarbe: $('regenFarbe').value,
+    regenLaenge: +$('regenLaenge').value || 0,
     profil: profilLesen()
   };
 }
 
-/* ---------------- Kernberechnung ---------------- */
+/* ================= Kernberechnung ================= */
 function berechne(i) {
   const sys = SYSTEME[i.system];
   const p = i.profil;
   const holz = HOLZ[i.holz];
+  const typ = TYPEN[i.typ];
   const glas = sys.glas.find(g => g.id === i.glasId) || sys.glas[0];
   const warnungen = [];
 
-  // Rahmenaußenmaß
+  // Anpassung der Werkstatt-Abzüge an abweichende Kantelbreiten (Basis 80/80)
+  const dR = p.rahmenB - 80, dF = p.fluegelB - 80;
+  const abzugB = p.abzugB + 2 * dR;
+  const abzugH = p.abzugH + 2 * dR;
+  const abzugStulp = p.abzugStulp + 2 * dR;
+  const glasAbzugFam = (p.glasAbzugB - p.abzugB) + 2 * dF;   // Abzug vom Flügelaußenmaß (Standard 134)
+  const regenAbzugFam = p.regenAbzug - p.abzugB;             // Abzug vom Flügelaußenmaß (Standard 89)
+
   const ramB = i.bezug === 'rohbau' ? i.b - 2 * p.fuge : i.b;
   const ramH = i.bezug === 'rohbau' ? i.h - 2 * p.fuge : i.h;
   if (!(ramB > 200 && ramH > 200)) return { fehler: 'Bitte plausible Maße eingeben (Rahmenaußenmaß > 200 mm).' };
 
-  // Rahmenfalzmaß (lichtes Falzmaß im Blendrahmen)
   const bfmB = ramB - 2 * (p.rahmenB - p.anschlag);
   const bfmH = ramH - 2 * (p.rahmenB - p.anschlag);
 
-  // Flügel / Glasfelder ermitteln
-  const fluegel = [];   // {name, art, ffb, ffh, famB, famH}
-  const felder = [];    // Glasfelder {name, imFluegel, gflB, gflH, glasB, glasH}
+  const fluegel = [];   // {name, art, famB, famH, ffb, ffh, glasB, glasH, gflB, gflH}
+  const felder = [];    // Glasfelder inkl. Festverglasung
   let pfostenLaenge = 0;
 
-  const machFluegel = (name, art, falzB, falzH) => {
+  const machFluegel = (name, art, famB, famH) => {
+    const glasB = famB - glasAbzugFam, glasH = famH - glasAbzugFam;
     const f = {
-      name, art,
-      ffb: falzB, ffh: falzH,
-      famB: falzB + 2 * p.ueberschlag,
-      famH: falzH + 2 * p.ueberschlag
+      name, art, famB, famH,
+      ffb: famB - 2 * p.ueberschlag, ffh: famH - 2 * p.ueberschlag,
+      glasB, glasH
     };
     fluegel.push(f);
-    const gflB = f.famB - 2 * (p.fluegelB - p.glaseinstand);
-    const gflH = f.famH - 2 * (p.fluegelB - p.glaseinstand);
     felder.push({
-      name: 'Glas ' + name, imFluegel: true,
-      gflB, gflH,
-      glasB: gflB - 2 * p.glasspiel, glasH: gflH - 2 * p.glasspiel
+      name: 'Glas ' + name, glasB, glasH,
+      gflB: glasB + 2 * p.glasspiel, gflH: glasH + 2 * p.glasspiel
     });
   };
 
   if (i.art === 'fest') {
     if (i.teilung === 'pfosten') {
       pfostenLaenge = bfmH;
-      const feldB = (bfmB - (p.pfostenB - 2 * p.anschlag)) / 2;
+      const feldFalzB = (bfmB - (p.pfostenB - 2 * p.anschlag)) / 2;
       ['Feld links', 'Feld rechts'].forEach(name => {
-        const gflB = feldB + 2 * p.glaseinstand - 2 * p.anschlag; // Falzlicht + Glaseinstand
-        const gflH = bfmH + 2 * p.glaseinstand - 2 * p.anschlag;
-        felder.push({ name, imFluegel: false, gflB, gflH, glasB: gflB - 2 * p.glasspiel, glasH: gflH - 2 * p.glasspiel });
+        const gflB = feldFalzB + 2 * (p.glaseinstand - p.anschlag);
+        const gflH = bfmH + 2 * (p.glaseinstand - p.anschlag);
+        felder.push({ name, gflB, gflH, glasB: gflB - 2 * p.glasspiel, glasH: gflH - 2 * p.glasspiel });
       });
     } else {
       const gflB = ramB - 2 * (p.rahmenB - p.glaseinstand);
       const gflH = ramH - 2 * (p.rahmenB - p.glaseinstand);
-      felder.push({ name: 'Festverglasung', imFluegel: false, gflB, gflH, glasB: gflB - 2 * p.glasspiel, glasH: gflH - 2 * p.glasspiel });
+      felder.push({ name: 'Festverglasung', gflB, gflH, glasB: gflB - 2 * p.glasspiel, glasH: gflH - 2 * p.glasspiel });
     }
   } else if (i.teilung === '1') {
-    machFluegel('Flügel', i.art, bfmB - 2 * p.falzluft, bfmH - 2 * p.falzluft);
+    machFluegel('Flügel', i.art, ramB - abzugB, ramH - abzugH);
   } else if (i.teilung === 'stulp') {
-    const gesamt = bfmB - 2 * p.falzluft - p.mittelfuge;
-    const je = gesamt / 2;
-    machFluegel('Gangflügel', i.art, je, bfmH - 2 * p.falzluft);
-    machFluegel('Standflügel', 'stulp', je, bfmH - 2 * p.falzluft);
+    const famB = (ramB - abzugStulp) / 2;
+    machFluegel('Gangflügel', i.art, famB, ramH - abzugH);
+    machFluegel('Standflügel', 'stulp', famB, ramH - abzugH);
   } else { // pfosten
     pfostenLaenge = bfmH;
     const oeffnungB = (bfmB - (p.pfostenB - 2 * p.anschlag)) / 2;
-    machFluegel('Flügel links', i.art, oeffnungB - 2 * p.falzluft, bfmH - 2 * p.falzluft);
-    machFluegel('Flügel rechts', i.art, oeffnungB - 2 * p.falzluft, bfmH - 2 * p.falzluft);
+    const famB = oeffnungB - 2 * p.falzluft + 2 * p.ueberschlag;
+    const famH = bfmH - 2 * p.falzluft + 2 * p.ueberschlag;
+    machFluegel('Flügel links', i.art, famB, famH);
+    machFluegel('Flügel rechts', i.art, famB, famH);
   }
 
-  // Plausibilitäten
   fluegel.forEach(f => {
-    if (f.ffb < 300) warnungen.push(f.name + ': Falzbreite ' + fmtMM(f.ffb) + ' mm ist sehr schmal – Beschlagmindestmaße prüfen.');
+    if (f.ffb < 300) warnungen.push(f.name + ': Falzbreite ' + fmtMM(f.ffb) + ' mm sehr schmal – Beschlagmindestmaße prüfen.');
     if (f.ffb > 1600) warnungen.push(f.name + ': Falzbreite ' + fmtMM(f.ffb) + ' mm über üblichem DK-Maximum (~1600 mm).');
     if (f.ffh > 2400) warnungen.push(f.name + ': Falzhöhe ' + fmtMM(f.ffh) + ' mm über üblichem DK-Maximum (~2400 mm).');
   });
   felder.forEach(f => {
-    if (f.glasB < 150 || f.glasH < 150) warnungen.push(f.name + ': Glasmaß sehr klein – Fertigungsminimum des Glasherstellers prüfen.');
+    if (f.glasB < 150 || f.glasH < 150) warnungen.push(f.name + ': Glasmaß sehr klein – Fertigungsminimum prüfen.');
   });
-  if (glas.dicke > sys.maxGlas) warnungen.push('Glasdicke ' + glas.dicke + ' mm überschreitet den üblichen Falzraum von ' + sys.name + ' (max. ~' + sys.maxGlas + ' mm).');
+  if (glas.dicke > sys.maxGlas) warnungen.push('Glasdicke ' + glas.dicke + ' mm überschreitet den Falzraum von ' + sys.name + ' (max. ~' + sys.maxGlas + ' mm).');
 
   /* ---- Zuschnittliste (je Fenster) ---- */
-  const qsRahmen = sys.rahmen.rohB + ' × ' + sys.rahmen.rohT + ' roh (' + sys.rahmen.fertigB + ' × ' + sys.rahmen.fertigT + ' fertig)';
-  const qsFluegel = sys.fluegel.rohB + ' × ' + sys.fluegel.rohT + ' roh (' + sys.fluegel.fertigB + ' × ' + sys.fluegel.fertigT + ' fertig)';
-  const qsPfosten = sys.pfosten.rohB + ' × ' + sys.pfosten.rohT + ' roh (' + sys.pfosten.fertigB + ' × ' + sys.pfosten.fertigT + ' fertig)';
-
+  const qsKantel = sys.rahmen.rohB + ' × ' + sys.rahmen.rohT + ' roh (' + p.rahmenB + ' fertig)';
+  const qsPfosten = sys.pfosten.rohB + ' × ' + sys.pfosten.rohT + ' roh (' + p.pfostenB + ' fertig)';
   const zuschnitt = [];
-  zuschnitt.push({ teil: 'Blendrahmen senkrecht', qs: qsRahmen, anzahl: 2, laenge: ramH + p.zugabe, gruppe: 'rahmen' });
-  zuschnitt.push({ teil: 'Blendrahmen waagerecht', qs: qsRahmen, anzahl: 2, laenge: ramB + p.zugabe, gruppe: 'rahmen' });
-  if (pfostenLaenge > 0) zuschnitt.push({ teil: 'Pfosten', qs: qsPfosten, anzahl: 1, laenge: pfostenLaenge + p.zugabe, gruppe: 'pfosten' });
+  zuschnitt.push({ teil: 'Blendrahmen senkrecht', qs: qsKantel, anzahl: 2, laenge: ramH + p.zugabe, holzteil: 'Kantel' });
+  zuschnitt.push({ teil: 'Blendrahmen waagerecht', qs: qsKantel, anzahl: 2, laenge: ramB + p.zugabe, holzteil: 'Kantel' });
+  if (pfostenLaenge > 0) zuschnitt.push({ teil: 'Pfosten', qs: qsPfosten, anzahl: 1, laenge: pfostenLaenge + p.zugabe, holzteil: 'Pfostenkantel' });
   fluegel.forEach(f => {
-    zuschnitt.push({ teil: f.name + ' senkrecht', qs: qsFluegel, anzahl: 2, laenge: f.famH + p.zugabe, gruppe: 'fluegel' });
-    zuschnitt.push({ teil: f.name + ' waagerecht', qs: qsFluegel, anzahl: 2, laenge: f.famB + p.zugabe, gruppe: 'fluegel' });
-    if (f.art === 'stulp') zuschnitt.push({ teil: 'Stulpaufsatz / Stulpleiste', qs: 'nach Profilsatz', anzahl: 1, laenge: f.famH + p.zugabe, gruppe: 'sonst' });
+    zuschnitt.push({ teil: f.name + ' senkrecht', qs: qsKantel, anzahl: 2, laenge: f.famH + p.zugabe, holzteil: 'Kantel' });
+    zuschnitt.push({ teil: f.name + ' waagerecht', qs: qsKantel, anzahl: 2, laenge: f.famB + p.zugabe, holzteil: 'Kantel' });
+    if (f.art === 'stulp') zuschnitt.push({ teil: 'Stulpaufsatz / Stulpleiste', qs: 'nach Profilsatz', anzahl: 1, laenge: f.famH + p.zugabe, holzteil: 'Kantel' });
   });
   felder.forEach(f => {
-    zuschnitt.push({ teil: 'Glasleiste senkrecht (' + f.name + ')', qs: sys.glasleiste, anzahl: 2, laenge: f.gflH + 20, gruppe: 'glasleiste' });
-    zuschnitt.push({ teil: 'Glasleiste waagerecht (' + f.name + ')', qs: sys.glasleiste, anzahl: 2, laenge: f.gflB + 20, gruppe: 'glasleiste' });
+    zuschnitt.push({ teil: 'Glasleiste senkrecht (' + f.name + ')', qs: sys.glasleiste, anzahl: 2, laenge: f.gflH + 20, glasleiste: true });
+    zuschnitt.push({ teil: 'Glasleiste waagerecht (' + f.name + ')', qs: sys.glasleiste, anzahl: 2, laenge: f.gflB + 20, glasleiste: true });
   });
-  // Wetterschutz
-  if (fluegel.length) {
-    fluegel.forEach(f => zuschnitt.push({ teil: 'Wetterschutzschiene Alu (' + f.name + ')', qs: 'Systemprofil', anzahl: 1, laenge: f.famB, gruppe: 'sonst' }));
+
+  /* ---- Wetterschutz (Regenschiene bzw. Wetterschenkel) ---- */
+  const regenschienen = []; // {laenge, anzahl}
+  if (i.typ === 'standard') {
+    if (fluegel.length) {
+      fluegel.forEach(f => {
+        const l = i.regenLaenge > 0 ? i.regenLaenge : f.famB - regenAbzugFam;
+        regenschienen.push({ laenge: l });
+        zuschnitt.push({ teil: 'Regenschutzschiene Alu (' + f.name + ', ' + i.regenFarbe + ')', qs: 'Systemprofil 20°', anzahl: 1, laenge: l });
+      });
+    } else {
+      const l = i.regenLaenge > 0 ? i.regenLaenge : felder[0].gflB;
+      regenschienen.push({ laenge: l });
+      zuschnitt.push({ teil: 'Regenschutzschiene Alu (Blendrahmen, ' + i.regenFarbe + ')', qs: 'Systemprofil 20°', anzahl: 1, laenge: l });
+    }
+  } else {
+    if (fluegel.length) {
+      fluegel.forEach(f => zuschnitt.push({ teil: 'Wetterschenkel Holz 45° (' + f.name + ')', qs: 'Wetterschenkelprofil', anzahl: 1, laenge: f.famB + p.zugabe, holzteil: 'Wetterschenkel' }));
+    } else {
+      zuschnitt.push({ teil: 'Wetterschenkel Holz 45° (Blendrahmen)', qs: 'Wetterschenkelprofil', anzahl: 1, laenge: ramB + p.zugabe, holzteil: 'Wetterschenkel' });
+    }
   }
-  zuschnitt.push({ teil: 'Regenschiene / Wetterschenkel Blendrahmen', qs: 'Systemprofil', anzahl: 1, laenge: ramB, gruppe: 'sonst' });
+
+  /* ---- Holz-Bestellliste: Kantellängen auf 100 mm aufrunden (800–3500) ---- */
+  const holzBestellMap = new Map();
+  zuschnitt.filter(z => z.holzteil).forEach(z => {
+    const l = kantelLaenge(z.laenge);
+    if (l > 3500) warnungen.push(z.teil + ': Bestelllänge ' + fmtMM(l) + ' mm über max. Lieferlänge 3500 mm!');
+    const key = z.holzteil + '|' + z.qs + '|' + l;
+    const e = holzBestellMap.get(key) || { teil: z.holzteil, qs: z.qs, laenge: l, stueck: 0 };
+    e.stueck += z.anzahl;
+    holzBestellMap.set(key, e);
+  });
+  const holzBestell = [...holzBestellMap.values()].sort((a, b) => a.teil.localeCompare(b.teil) || a.laenge - b.laenge);
+  const holzBestellLfm = holzBestell.reduce((s, e) => s + e.laenge / 1000 * e.stueck, 0);
 
   /* ---- Beschläge (je Fenster) ---- */
   const beschlag = new Map();
-  const add = (key, label, anzahl, hinweis = '') => {
+  const add = (key, anzahl, hinweis = '') => {
     if (anzahl <= 0) return;
-    const e = beschlag.get(key) || { label, anzahl: 0, hinweis };
+    const e = beschlag.get(key) || { key, anzahl: 0, hinweis };
     e.anzahl += anzahl;
     if (hinweis) e.hinweis = hinweis;
     beschlag.set(key, e);
@@ -511,103 +814,120 @@ function berechne(i) {
 
   fluegel.forEach(f => {
     const gGr = getriebeGr(f.ffh), sGr = schereGr(f.ffb);
+    const griffKey = i.rc === 'std' ? 'griff' : 'griff_ab';
     if (f.art === 'dk') {
-      add('ecklager', 'Ecklager + Ecklagerband', 1);
-      add('scherenlager', 'Scherenlagerband', 1);
-      add('schere_' + sGr, 'Scherenarm ' + sGr, 1, 'Richtgröße nach FFB ' + fmtMM(f.ffb) + ' mm');
-      if (f.ffb > 1100) add('zusatzschere', 'Zusatzschere TITAN', 1, 'ab FFB > 1100 mm empfohlen');
-      add('getriebe_dk_' + gGr, 'DK-Getriebe TITAN AF ' + gGr, 1, 'Richtgröße nach FFH ' + fmtMM(f.ffh) + ' mm');
-      add('eckumlenkung', 'Eckumlenkung VSO', 2);
+      add('ecklager', 1);
+      add('scherenlager', 1);
+      add('schere_' + sGr, 1, 'Richtgröße nach FFB ' + fmtMM(f.ffb) + ' mm');
+      if (f.ffb > 1100) add('zusatzschere', 1, 'ab FFB > 1100 mm empfohlen');
+      add('getr_dk_' + gGr, 1, 'Richtgröße nach FFH ' + fmtMM(f.ffh) + ' mm');
+      add('eckuml', 2);
       const mvG = f.ffh > 1800 ? 2 : (f.ffh > 1200 ? 1 : 0);
       const mvB = f.ffh > 1400 ? 1 : 0;
       const zvU = f.ffb > 1000 ? 1 : 0;
-      add('mv_griff', 'Mittelverriegelung MV griffseitig', mvG, 'ab FFH > 1200 mm');
-      add('mv_band', 'Mittelverriegelung MV bandseitig', mvB, 'ab FFH > 1400 mm');
-      add('zv_unten', 'Zusatzverriegelung unten', zvU, 'ab FFB > 1000 mm');
-      add('schliessblech', 'Schließbleche (inkl. Kippschließblech)', 4 + mvG + mvB + zvU + (f.ffb > 800 ? 1 : 0));
-      add('griff', 'Fenstergriff Si-line', 1, i.din);
+      add('mv', mvG + mvB, 'griff-/bandseitig nach FFH');
+      add('zv', zvU, 'ab FFB > 1000 mm');
+      let punkte = 4 + mvG + mvB + zvU + (f.ffb > 800 ? 1 : 0);
+      if (i.rc === 'rc2') {
+        const pilz = (f.ffh > 1000 ? 1 : 0) + (f.ffb > 800 ? 1 : 0);
+        add('pilz', pilz, 'RC 2: zusätzliche Pilzkopfpunkte');
+        add('sb_rc', punkte + pilz, 'RC 2: alle Punkte mit Sicherheitsschließblech');
+      } else if (i.rc === 'rc1') {
+        add('sb_rc', 2, 'RC 1 N: unten + griffseitig');
+        add('sb', punkte - 2);
+      } else {
+        add('sb', punkte);
+      }
+      add(griffKey, 1, i.din + (i.rc !== 'std' ? ', abschließbar 100 Nm' : ''));
     } else if (f.art === 'dreh') {
-      add('ecklager', 'Ecklager + Ecklagerband', 1);
-      add('drehband', 'Drehlagerband oben', 1);
-      add('getriebe_d_' + gGr, 'Dreh-Getriebe TITAN AF ' + gGr, 1, 'Richtgröße nach FFH ' + fmtMM(f.ffh) + ' mm');
+      add('ecklager', 1);
+      add('drehband', 1);
+      add('getr_d_' + gGr, 1, 'Richtgröße nach FFH ' + fmtMM(f.ffh) + ' mm');
       const mvG = f.ffh > 1200 ? 1 : 0;
-      add('mv_griff', 'Mittelverriegelung MV griffseitig', mvG, 'ab FFH > 1200 mm');
-      add('schliessblech', 'Schließbleche', 3 + mvG);
-      add('griff', 'Fenstergriff Si-line', 1, i.din);
+      add('mv', mvG);
+      const punkte = 3 + mvG;
+      if (i.rc === 'rc2') { add('sb_rc', punkte, 'RC 2'); }
+      else if (i.rc === 'rc1') { add('sb_rc', 2, 'RC 1 N'); add('sb', punkte - 2); }
+      else add('sb', punkte);
+      add(griffKey, 1, i.din);
     } else if (f.art === 'kipp') {
-      add('kipplager', 'Kipplager (unten)', 2);
-      add('kippschere', 'Fangschere / Kippschere', f.ffb > 1000 ? 2 : 1);
-      add('kippverschluss', 'Kippverschluss-Getriebe', 1);
-      add('schliessblech', 'Schließbleche', 2);
-      add('griff', 'Fenstergriff Si-line', 1);
+      add('kipplager', 2);
+      add('fangschere', f.ffb > 1000 ? 2 : 1);
+      add('kippverschluss', 1);
+      add(i.rc === 'std' ? 'sb' : 'sb_rc', 2);
+      add(griffKey, 1);
     } else if (f.art === 'stulp') {
-      add('stulpgetriebe_' + gGr, 'Stulpflügelgetriebe TITAN AF ' + gGr, 1, 'Richtgröße nach FFH ' + fmtMM(f.ffh) + ' mm');
-      add('ecklager', 'Ecklager + Ecklagerband', 1);
-      add('drehband', 'Drehlagerband oben', 1);
-      add('schliesskloben', 'Schließkloben oben/unten', 2);
+      add('getr_st_' + gGr, 1, 'Richtgröße nach FFH ' + fmtMM(f.ffh) + ' mm');
+      add('ecklager', 1);
+      add('drehband', 1);
+      add('schliesskloben', 2);
     }
   });
-  if (felder.length) add('glaskloetze', 'Glasklötze (Trag-/Distanzklötze)', felder.length * 6, 'je Feld ca. 6 Stk');
-  if (fluegel.length) add('schrauben', 'Beschlagschrauben 4 × 25/40', 1, 'ca. 1 Paket je Fenster');
+  if (felder.length) add('kloetze', felder.length, 'Trag-/Distanzklötze');
+  if (fluegel.length) add('schrauben', 1, 'ca. 1 Paket je Fenster');
+  const beschlagListe = [...beschlag.values()];
 
-  /* ---- Materialmengen (je Fenster, ohne Stückzahl) ---- */
+  /* ---- Materialmengen (je Fenster) ---- */
   const mm2m = v => v / 1000;
-  const kantelLfm = {}; // gruppe -> {label, lfm, cs}
-  const csOf = { rahmen: sys.rahmen, fluegel: sys.fluegel, pfosten: sys.pfosten };
-  const gruppenName = { rahmen: 'Blendrahmen', fluegel: 'Flügel', pfosten: 'Pfosten' };
-  zuschnitt.filter(z => csOf[z.gruppe]).forEach(z => {
-    const k = kantelLfm[z.gruppe] || { label: gruppenName[z.gruppe] + ' ' + z.qs, lfm: 0, cs: csOf[z.gruppe] };
-    k.lfm += mm2m(z.laenge) * z.anzahl;
-    kantelLfm[z.gruppe] = k;
-  });
-  const glasleistenLfm = zuschnitt.filter(z => z.gruppe === 'glasleiste')
-    .reduce((s, z) => s + mm2m(z.laenge) * z.anzahl, 0);
-
+  const glasleistenLfm = zuschnitt.filter(z => z.glasleiste).reduce((s, z) => s + mm2m(z.laenge) * z.anzahl, 0);
   const glasFlaeche = felder.reduce((s, f) => s + mm2m(f.glasB) * mm2m(f.glasH), 0);
   const glasGewicht = glasFlaeche * glas.kgm2;
   const glasUmfang = felder.reduce((s, f) => s + 2 * (mm2m(f.glasB) + mm2m(f.glasH)), 0);
-
   const ueberschlagDichtung = fluegel.reduce((s, f) => s + 2 * (mm2m(f.famB) + mm2m(f.famH)), 0) * 1.05;
   const anschlagDichtung = fluegel.reduce((s, f) => s + 2 * (mm2m(f.ffb) + mm2m(f.ffh)), 0) * 1.05;
+  const kantelZuschnittLfm = zuschnitt.filter(z => z.holzteil).reduce((s, z) => s + mm2m(z.laenge) * z.anzahl, 0);
+  const csArea = (sys.rahmen.rohB / 1000) * (sys.rahmen.rohT / 1000);
+  const holzVolumen = holzBestellLfm * csArea;
+  const anstrichFlaeche = (kantelZuschnittLfm + glasleistenLfm) * 0.28;
+  const lasurLiter = anstrichFlaeche * 0.2; // 2 Anstriche à ~100 ml/m²
+  const silikonKartuschen = Math.max(1, Math.ceil(glasUmfang * 2 / 6));
+  const regenschienenLfm = regenschienen.reduce((s, r) => s + mm2m(r.laenge), 0);
 
-  // Flügelgewichte (Holz + Glas)
-  const fluegelGewichte = fluegel.map((f, idx) => {
+  const fluegelGewichte = fluegel.map(f => {
     const umfang = 2 * (mm2m(f.famB) + mm2m(f.famH));
-    const holzKg = umfang * (sys.fluegel.fertigB / 1000) * (sys.fluegel.fertigT / 1000) * holz.dichte;
-    const feld = felder[idx];
-    const glasKg = feld && feld.imFluegel ? mm2m(feld.glasB) * mm2m(feld.glasH) * glas.kgm2 : 0;
+    const holzKg = umfang * (p.fluegelB / 1000) * (sys.tiefe / 1000) * holz.dichte;
+    const glasKg = mm2m(f.glasB) * mm2m(f.glasH) * glas.kgm2;
     return { name: f.name, kg: holzKg + glasKg };
   });
   fluegelGewichte.forEach(fg => {
-    if (fg.kg > 100) warnungen.push(fg.name + ': ca. ' + fmt(fg.kg, 0) + ' kg Flügelgewicht – Tragfähigkeit der Bänder prüfen (Standard-Ecklager meist ~130 kg).');
+    if (fg.kg > 100) warnungen.push(fg.name + ': ca. ' + fmt(fg.kg, 0) + ' kg Flügelgewicht – Tragfähigkeit der Bänder prüfen (Standard ~130 kg).');
   });
 
-  const holzVolumen = Object.values(kantelLfm)
-    .reduce((s, k) => s + k.lfm * (k.cs.rohB / 1000) * (k.cs.rohT / 1000), 0);
-  const gesamtLfm = Object.values(kantelLfm).reduce((s, k) => s + k.lfm, 0);
-  const anstrichFlaeche = (gesamtLfm + glasleistenLfm) * 0.28; // ~Abwicklung 0,28 m²/lfm
+  /* ---- Kalkulation (je Fenster, aus Stammdaten-Preisen) ---- */
+  const kalk = [];
+  const kAdd = (label, betrag) => { if (betrag > 0) kalk.push({ label, betrag }); };
+  kAdd('Holz (' + holz.label + ', ' + fmt(holzBestellLfm, 1) + ' lfm Kantel bestellt)', holzBestellLfm * pM('holz_' + i.holz));
+  kAdd('Glasleisten (' + fmt(glasleistenLfm, 1) + ' lfm)', glasleistenLfm * pM('glasleiste'));
+  let glasPreis = glasFlaeche * pM(glas.preisKey);
+  if (i.glasTyp === 'ornament') glasPreis += glasFlaeche * pM('zu_ornament');
+  if (i.vsg) glasPreis += glasFlaeche * pM('zu_vsg');
+  kAdd('Glas (' + fmt(glasFlaeche) + ' m²)', glasPreis);
+  kAdd('Beschlag', beschlagListe.reduce((s, b) => s + b.anzahl * pB(b.key), 0));
+  kAdd('Dichtungen (' + fmt(ueberschlagDichtung + anschlagDichtung, 1) + ' lfm)', (ueberschlagDichtung + anschlagDichtung) * pM('dichtung'));
+  kAdd('Silikon S 110 (' + silikonKartuschen + ' Kart.)', silikonKartuschen * pM('silikon'));
+  const obInnen = anstrichFlaeche / 2 * 0.2 * pM(i.obInnenTyp === 'ral' ? 'farbe' : 'lasur');
+  const obAussen = anstrichFlaeche / 2 * 0.2 * pM(i.obAussenTyp === 'ral' ? 'farbe' : 'lasur');
+  kAdd('Oberfläche innen/außen (' + fmt(lasurLiter, 1) + ' l)', obInnen + obAussen);
+  if (i.typ === 'standard') kAdd('Regenschutzschiene (' + fmt(regenschienenLfm, 1) + ' lfm)', regenschienenLfm * pM('regenschiene'));
+  const kalkSumme = kalk.reduce((s, k) => s + k.betrag, 0);
+  const richtpreis = kalkSumme * (1 + (+stamm.zuschlag || 0) / 100);
 
   return {
-    inp: i, sys, glas, holz,
+    inp: i, sys, glas, holz, typ,
     ram: { b: ramB, h: ramH }, bfm: { b: bfmB, h: bfmH },
-    fluegel, felder, pfostenLaenge,
-    zuschnitt, beschlag: [...beschlag.values()],
+    fluegel, felder, pfostenLaenge, zuschnitt,
+    beschlag: beschlagListe, holzBestell, regenschienen,
     material: {
-      kantelLfm, glasleistenLfm, glasFlaeche, glasGewicht, glasUmfang,
-      ueberschlagDichtung, anschlagDichtung, holzVolumen, gesamtLfm,
-      anstrichFlaeche, fluegelGewichte
+      holzBestellLfm, glasleistenLfm, glasFlaeche, glasGewicht, glasUmfang,
+      ueberschlagDichtung, anschlagDichtung, holzVolumen, anstrichFlaeche,
+      lasurLiter, silikonKartuschen, regenschienenLfm, fluegelGewichte
     },
+    kalk: { zeilen: kalk, summe: kalkSumme, richtpreis },
     warnungen
   };
 }
 
-/* ---------------- Darstellung ---------------- */
-function tabelle(kopf, zeilen) {
-  return '<div class="tblwrap"><table><thead><tr>' + kopf.map(k => '<th' + (k.num ? ' class="num"' : '') + '>' + k.t + '</th>').join('') +
-    '</tr></thead><tbody>' + zeilen.join('') + '</tbody></table></div>';
-}
-
-/* ---------------- Fensterzeichnung (SVG, Ansicht von innen) ---------------- */
+/* ================= Fensterzeichnung (SVG, Ansicht von innen) ================= */
 function fensterSVG(r) {
   const i = r.inp, p = i.profil;
   const W = r.ram.b, H = r.ram.h;
@@ -629,13 +949,13 @@ function fensterSVG(r) {
   // die Linienenden liegen an der Bandseite. Kipp: Bänder unten → Spitze oben Mitte.
   const symbole = (x, y, wi, hi, art, band) => {
     if (art === 'dreh' || art === 'dk' || art === 'stulp') {
-      const bx = band === 'L' ? x : x + wi;          // Bandseite (Linienenden)
-      const gx = band === 'L' ? x + wi : x;          // Griffseite (Spitze)
+      const bx = band === 'L' ? x : x + wi;
+      const gx = band === 'L' ? x + wi : x;
       L(bx, y, gx, y + hi / 2, 'sv-sym');
       L(bx, y + hi, gx, y + hi / 2, 'sv-sym');
     }
     if (art === 'kipp' || art === 'dk') {
-      L(x, y + hi, x + wi / 2, y, 'sv-sym');         // Bänder unten → Spitze oben Mitte
+      L(x, y + hi, x + wi / 2, y, 'sv-sym');
       L(x + wi, y + hi, x + wi / 2, y, 'sv-sym');
     }
   };
@@ -643,7 +963,7 @@ function fensterSVG(r) {
     R(x, y, wi, hi, 'sv-fluegel');
     R(x + flb, y + flb, wi - 2 * flb, hi - 2 * flb, 'sv-glas');
     symbole(x + flb, y + flb, wi - 2 * flb, hi - 2 * flb, art, band);
-    const gx = band === 'L' ? x + wi - flb / 2 : x + flb / 2; // Griff auf der Bandgegenseite
+    const gx = band === 'L' ? x + wi - flb / 2 : x + flb / 2;
     el.push('<circle cx="' + gx.toFixed(1) + '" cy="' + (y + hi / 2).toFixed(1) + '" r="3" class="sv-griff"/>');
   };
 
@@ -667,14 +987,13 @@ function fensterSVG(r) {
     fluegelZeichnen(ox, oy, halbe, oh, i.art, 'L');
     fluegelZeichnen(ox + halbe, oy, halbe, oh, 'stulp', 'R');
     L(ox + halbe, oy, ox + halbe, oy + oh, 'sv-stulp');
-  } else { // pfosten
+  } else {
     const flW = (ow - pfb) / 2;
     fluegelZeichnen(ox, oy, flW, oh, i.art, 'L');
     R(ox + flW, oy, pfb, oh, 'sv-pfosten');
     fluegelZeichnen(ox + flW + pfb, oy, flW, oh, i.art, 'R');
   }
 
-  // Maßlinien
   const mY = h + 16, mX = w + 16;
   L(0, mY, w, mY, 'sv-sym'); L(0, mY - 4, 0, mY + 4, 'sv-sym'); L(w, mY - 4, w, mY + 4, 'sv-sym');
   el.push('<text x="' + (w / 2).toFixed(1) + '" y="' + (mY + 14) + '" text-anchor="middle" class="sv-mass">' + fmtMM(W) + '</text>');
@@ -686,145 +1005,244 @@ function fensterSVG(r) {
     (r.fluegel.length && i.teilung === '1' ? ', ' + i.din : '') + '</figcaption></figure>';
 }
 
+/* ================= Darstellung ================= */
+function tabelle(kopf, zeilen) {
+  return '<div class="tblwrap"><table><thead><tr>' + kopf.map(k => '<th' + (k.num ? ' class="num"' : '') + '>' + k.t + '</th>').join('') +
+    '</tr></thead><tbody>' + zeilen.join('') + '</tbody></table></div>';
+}
+const kBox = (t, v, sub) => '<div class="box"><b>' + t + '</b><span>' + v + '</span>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>';
+const matZeile = (l, menge, hinw) => '<tr><td>' + l + '</td><td class="num">' + menge + '</td><td>' + (hinw || '') + '</td></tr>';
+
+function artText(i) {
+  const art = { dk: 'Dreh-Kipp', dreh: 'Dreh', kipp: 'Kipp', fest: 'Festverglasung' }[i.art];
+  const t = { 1: '1-flügelig', stulp: '2-flg. Stulp', pfosten: '2-flg. Pfosten' }[i.teilung];
+  return art + ', ' + t;
+}
+function lageText(i) {
+  return [i.etage, i.raum].filter(Boolean).join(' · ') || '–';
+}
+function obText(typ, ton) {
+  return (typ === 'ral' ? 'RAL deckend' : 'Remmers Lasur') + (ton ? ' – ' + ton : '');
+}
+function glasBeschreibung(r) {
+  const i = r.inp;
+  const teile = [r.glas.label.split(' – ')[0] + ' (' + r.glas.dicke + ' mm)'];
+  teile.push(i.glasTyp === 'ornament' ? 'Ornament: ' + i.ornament : 'Klarglas');
+  if (i.vsg) teile.push('VSG');
+  teile.push('Randverbund ' + i.randverbund);
+  if (i.glasExtra) teile.push(i.glasExtra);
+  return teile.join(', ');
+}
+
 function ergebnisHTML(r) {
   if (r.fehler) return '<div class="warnung">' + r.fehler + '</div>';
   const i = r.inp;
   let h = '';
 
-  h += '<p><b>' + i.pos + '</b> – ' + r.sys.name + ', ' + artText(i) + ', ' + i.stueck + ' Stk, ' +
-       r.holz.label + ', ' + r.glas.label + (r.fluegel.length ? ', ' + i.din : '') + '</p>';
+  h += '<p><b>' + i.pos + '</b>' + (i.kommission ? ' – ' + i.kommission : '') +
+       (lageText(i) !== '–' ? ' (' + lageText(i) + ')' : '') + '</p>';
+  h += '<div class="ausfuehrung">' +
+    '<span>' + r.sys.name + '</span>' +
+    '<span>' + r.typ.label + ' – ' + r.typ.schraege + '° Aufdeckschräge</span>' +
+    '<span>' + artText(i) + '</span>' +
+    (r.fluegel.length ? '<span>' + i.din + '</span>' : '') +
+    '<span>' + RC[i.rc].label + '</span>' +
+    '<span>' + r.holz.label + '</span>' +
+    '<span>Innen: ' + obText(i.obInnenTyp, i.obInnenTon) + '</span>' +
+    '<span>Außen: ' + obText(i.obAussenTyp, i.obAussenTon) + '</span>' +
+    '<span>Silikon: S 110 ' + i.silikon + '</span>' +
+    (i.typ === 'standard' ? '<span>Regenschiene: ' + i.regenFarbe + '</span>' : '<span>' + r.typ.wetterschutz + '</span>') +
+    '<span>' + i.stueck + ' Stück</span>' +
+    '</div>';
 
   r.warnungen.forEach(w => h += '<div class="warnung">⚠ ' + w + '</div>');
 
-  // Zeichnung
   h += '<h3>Ansicht</h3><div class="zeichnung">' + fensterSVG(r) + '</div>';
 
-  // Maßkette
-  h += '<h3>Maßkette</h3><div class="kette">';
+  h += '<h3>Maßkette (Werkstattformel)</h3><div class="kette">';
   h += kBox('Rahmenaußenmaß', fmtMM(r.ram.b) + ' × ' + fmtMM(r.ram.h) + ' mm', i.bezug === 'rohbau' ? 'aus Rohbaumaß − 2 × ' + i.profil.fuge + ' mm Fuge' : '');
-  h += kBox('Rahmenfalzmaß (licht)', fmtMM(r.bfm.b) + ' × ' + fmtMM(r.bfm.h) + ' mm', '');
   r.fluegel.forEach(f => {
+    h += kBox(f.name + ' – Außenmaß', fmtMM(f.famB) + ' × ' + fmtMM(f.famH) + ' mm', 'Werkstattformel');
     h += kBox(f.name + ' – Falzmaß FFB × FFH', fmtMM(f.ffb) + ' × ' + fmtMM(f.ffh) + ' mm', 'Bezugsmaß für den Beschlag');
-    h += kBox(f.name + ' – Außenmaß', fmtMM(f.famB) + ' × ' + fmtMM(f.famH) + ' mm', 'inkl. ' + i.profil.ueberschlag + ' mm Überschlag');
   });
   if (r.pfostenLaenge) h += kBox('Pfostenlänge', fmtMM(r.pfostenLaenge) + ' mm', 'zwischen den Falzen');
   h += '</div>';
 
-  // Glas
   h += '<h3>Glasmaße (Bestellmaße)</h3>';
   h += tabelle(
-    [{ t: 'Feld' }, { t: 'Glasfalz licht', num: 1 }, { t: 'Glas-Bestellmaß', num: 1 }, { t: 'Aufbau', num: 0 }, { t: 'Fläche', num: 1 }, { t: 'Gewicht', num: 1 }],
+    [{ t: 'Feld' }, { t: 'Glas-Bestellmaß', num: 1 }, { t: 'Ausführung' }, { t: 'Fläche', num: 1 }, { t: 'Gewicht', num: 1 }],
     r.felder.map(f => {
       const a = (f.glasB / 1000) * (f.glasH / 1000);
-      return '<tr><td>' + f.name + '</td><td class="num">' + fmtMM(f.gflB) + ' × ' + fmtMM(f.gflH) + '</td>' +
+      return '<tr><td>' + f.name + '</td>' +
         '<td class="num"><b>' + fmtMM(f.glasB) + ' × ' + fmtMM(f.glasH) + ' mm</b></td>' +
-        '<td>' + r.glas.label.split(' – ')[0] + ' (' + r.glas.dicke + ' mm)</td>' +
+        '<td>' + glasBeschreibung(r) + '</td>' +
         '<td class="num">' + fmt(a) + ' m²</td><td class="num">' + fmt(a * r.glas.kgm2, 1) + ' kg</td></tr>';
     })
   );
 
-  // Zuschnitt
-  h += '<h3>Zuschnittliste Holz (je Fenster' + (i.stueck > 1 ? ', × ' + i.stueck + ' Stück' : '') + ')</h3>';
+  h += '<h3>Zuschnittliste (je Fenster' + (i.stueck > 1 ? ', × ' + i.stueck + ' Stück' : '') + ')</h3>';
   h += tabelle(
-    [{ t: 'Teil' }, { t: 'Querschnitt [mm]' }, { t: 'Anzahl', num: 1 }, { t: 'Länge inkl. Zugabe', num: 1 }],
+    [{ t: 'Teil' }, { t: 'Querschnitt [mm]' }, { t: 'Anzahl', num: 1 }, { t: 'Länge', num: 1 }],
     r.zuschnitt.map(z => '<tr><td>' + z.teil + '</td><td>' + z.qs + '</td><td class="num">' + z.anzahl +
       '</td><td class="num">' + fmtMM(z.laenge) + ' mm</td></tr>')
   );
 
-  // Beschläge
-  h += '<h3>Beschlagliste – Siegenia TITAN AF (je Fenster)</h3>';
-  h += r.beschlag.length
-    ? tabelle([{ t: 'Beschlagteil' }, { t: 'Anzahl', num: 1 }, { t: 'Hinweis' }],
-        r.beschlag.map(b => '<tr><td>' + b.label + '</td><td class="num">' + b.anzahl + '</td><td>' + (b.hinweis || '') + '</td></tr>'))
-    : '<p class="leer">Festverglasung – kein Dreh-/Kippbeschlag erforderlich.</p>';
+  h += '<h3>Holz-Bestellliste (je Fenster, Kanteln auf 100 mm gerundet)</h3>';
+  h += tabelle(
+    [{ t: 'Kantel' }, { t: 'Querschnitt [mm]' }, { t: 'Bestelllänge', num: 1 }, { t: 'Stück', num: 1 }],
+    r.holzBestell.map(e => '<tr><td>' + e.teil + ' ' + r.holz.label + '</td><td>' + e.qs + '</td>' +
+      '<td class="num">' + fmtMM(e.laenge) + ' mm</td><td class="num">' + e.stueck + '</td></tr>')
+  );
 
-  // Material
+  h += '<h3>Beschlagliste – Siegenia TITAN AF, ' + RC[i.rc].label + ' (je Fenster)</h3>';
+  h += r.beschlag.length
+    ? tabelle([{ t: 'Art.-Nr.' }, { t: 'Beschlagteil' }, { t: 'Anzahl', num: 1 }, { t: 'Hinweis' }],
+        r.beschlag.map(b => '<tr><td>' + (artNr(b.key) || '<span class="leer">–</span>') + '</td><td>' + BESCHLAG_LABEL[b.key] +
+          '</td><td class="num">' + b.anzahl + '</td><td>' + (b.hinweis || '') + '</td></tr>'))
+    : '<p class="leer">Festverglasung ohne Flügel – nur Verklotzung.</p>';
+
   const m = r.material, s = i.stueck;
   h += '<h3>Materialbedarf (gesamt für ' + s + ' Stück)</h3>';
   const zeilen = [];
-  Object.values(m.kantelLfm).forEach(k =>
-    zeilen.push(matZeile('Kantel ' + k.label, fmt(k.lfm * s) + ' lfm', 'inkl. Zuschnittzugabe')));
-  zeilen.push(matZeile('Holzvolumen gesamt (roh)', fmt(m.holzVolumen * s, 3) + ' m³', '≈ ' + fmt(m.holzVolumen * s * r.holz.dichte, 0) + ' kg ' + r.holz.label));
-  zeilen.push(matZeile('Glasleisten ' + r.sys.glasleiste, fmt(m.glasleistenLfm * s) + ' lfm', ''));
+  zeilen.push(matZeile('Kantel ' + r.holz.label + ' (Bestelllängen)', fmt(m.holzBestellLfm * s, 1) + ' lfm', '≈ ' + fmt(m.holzVolumen * s, 3) + ' m³'));
+  zeilen.push(matZeile('Glasleisten ' + r.sys.glasleiste, fmt(m.glasleistenLfm * s, 1) + ' lfm', ''));
   zeilen.push(matZeile('Isolierglas', fmt(m.glasFlaeche * s) + ' m²', '≈ ' + fmt(m.glasGewicht * s, 0) + ' kg'));
-  if (m.ueberschlagDichtung) zeilen.push(matZeile('Überschlagdichtung (Flügel)', fmt(m.ueberschlagDichtung * s) + ' lfm', 'inkl. 5 % Zugabe'));
-  if (m.anschlagDichtung) zeilen.push(matZeile('Falzdichtung (Rahmen)', fmt(m.anschlagDichtung * s) + ' lfm', 'inkl. 5 % Zugabe'));
-  zeilen.push(matZeile('Versiegelung Glasfalz (innen + außen)', fmt(m.glasUmfang * 2 * s) + ' lfm', '≈ ' + Math.ceil(m.glasUmfang * 2 * s / 6) + ' Kartusche(n) Dichtstoff'));
-  zeilen.push(matZeile('Oberfläche (Abwicklung)', fmt(m.anstrichFlaeche * s) + ' m²', '≈ ' + fmt(m.anstrichFlaeche * s * 0.2, 1) + ' l Lasur/Lack bei 2 Anstrichen'));
+  if (m.ueberschlagDichtung) zeilen.push(matZeile('Überschlagdichtung', fmt(m.ueberschlagDichtung * s, 1) + ' lfm', 'inkl. 5 % Zugabe'));
+  if (m.anschlagDichtung) zeilen.push(matZeile('Falzdichtung Rahmen', fmt(m.anschlagDichtung * s, 1) + ' lfm', 'inkl. 5 % Zugabe'));
+  zeilen.push(matZeile('Silikon Otto Seal S 110 (' + i.silikon + ')', (m.silikonKartuschen * s) + ' Kartusche(n)', 'Glasfalz innen + außen'));
+  zeilen.push(matZeile('Oberfläche', fmt(m.anstrichFlaeche * s, 1) + ' m²', '≈ ' + fmt(m.lasurLiter * s, 1) + ' l bei 2 Anstrichen'));
+  if (i.typ === 'standard' && m.regenschienenLfm) zeilen.push(matZeile('Regenschutzschiene (' + i.regenFarbe + ')', fmt(m.regenschienenLfm * s, 2) + ' lfm', r.regenschienen.map(x => fmtMM(x.laenge) + ' mm').join(', ')));
   m.fluegelGewichte.forEach(fg => zeilen.push(matZeile('Flügelgewicht ' + fg.name, fmt(fg.kg, 1) + ' kg', 'Holz + Glas, je Flügel')));
   h += tabelle([{ t: 'Material' }, { t: 'Menge', num: 1 }, { t: 'Hinweis' }], zeilen);
 
+  h += '<h3>Kalkulation (Material, für ' + s + ' Stück)</h3>';
+  if (r.kalk.zeilen.length) {
+    const kz = r.kalk.zeilen.map(k => '<tr><td>' + k.label + '</td><td class="num">' + fmtEur(k.betrag * s) + '</td></tr>');
+    kz.push('<tr class="summe"><td>Materialkosten</td><td class="num">' + fmtEur(r.kalk.summe * s) + '</td></tr>');
+    if (stamm.zuschlag > 0) kz.push('<tr class="summe"><td>Richtpreis inkl. ' + fmt(stamm.zuschlag, 0) + ' % Aufschlag</td><td class="num">' + fmtEur(r.kalk.richtpreis * s) + '</td></tr>');
+    h += tabelle([{ t: 'Position' }, { t: 'Betrag', num: 1 }], kz);
+  } else {
+    h += '<p class="leer">Keine Preise hinterlegt – unter „Preise &amp; Stammdaten“ eintragen, dann rechnet die Kalkulation automatisch.</p>';
+  }
+
   return h;
 }
-const kBox = (t, v, sub) => '<div class="box"><b>' + t + '</b><span>' + v + '</span>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>';
-const matZeile = (l, menge, hinw) => '<tr><td>' + l + '</td><td class="num">' + menge + '</td><td>' + hinw + '</td></tr>';
 
-function artText(i) {
-  const art = { dk: 'Dreh-Kipp', dreh: 'Dreh', kipp: 'Kipp', fest: 'Festverglasung' }[i.art];
-  const t = { 1: '1-flügelig', stulp: '2-flügelig Stulp', pfosten: '2-flügelig Pfosten' }[i.teilung];
-  return art + ', ' + t;
-}
-
-/* ---------------- Positionsliste (localStorage) ---------------- */
-const LS_KEY = 'holzfensterPlanerPositionen_v1';
-const positionenLaden = () => { try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch (e) { return []; } };
-const positionenSpeichern = list => localStorage.setItem(LS_KEY, JSON.stringify(list));
-
+/* ================= Positionsliste & Bestelllisten ================= */
 function positionenRendern() {
   const list = positionenLaden();
-  const wrap = $('positionenInhalt'), ges = $('gesamtInhalt');
+  const wrap = $('positionenInhalt'), best = $('bestellInhalt');
   if (!list.length) {
     wrap.innerHTML = '<p class="leer">Noch keine Positionen erfasst.</p>';
-    ges.innerHTML = '';
+    best.innerHTML = '';
     return;
   }
-  const rows = [];
-  const summen = { lfm: 0, m3: 0, glas: 0, fenster: 0 };
-  const beschlagGesamt = new Map();
-  const kantelGesamt = new Map();
 
-  list.forEach((p, idx) => {
-    const r = berechne(p);
+  const rows = [];
+  const holzAgg = new Map();      // holzteil|qs|holzart|länge -> stück
+  const glasAgg = new Map();      // beschreibung|maß -> stück
+  const beschlagAgg = new Map();  // key -> anzahl
+  const sonst = { dichtung: 0, silikon: new Map(), regen: new Map(), lasur: 0, flaeche: 0, glasleisten: 0 };
+  let kalkGesamt = 0, richtGesamt = 0, fensterGesamt = 0;
+
+  list.forEach((pIn, idx) => {
+    const r = berechne(pIn);
     if (r.fehler) return;
-    const s = p.stueck;
-    summen.fenster += s;
-    summen.lfm += r.material.gesamtLfm * s;
-    summen.m3 += r.material.holzVolumen * s;
-    summen.glas += r.material.glasFlaeche * s;
-    Object.values(r.material.kantelLfm).forEach(k => {
-      kantelGesamt.set(k.label, (kantelGesamt.get(k.label) || 0) + k.lfm * s);
+    const s = pIn.stueck;
+    fensterGesamt += s;
+    kalkGesamt += r.kalk.summe * s;
+    richtGesamt += r.kalk.richtpreis * s;
+
+    r.holzBestell.forEach(e => {
+      const key = e.teil + '|' + e.qs + '|' + pIn.holz + '|' + e.laenge;
+      holzAgg.set(key, (holzAgg.get(key) || 0) + e.stueck * s);
     });
-    r.beschlag.forEach(b => {
-      const e = beschlagGesamt.get(b.label) || 0;
-      beschlagGesamt.set(b.label, e + b.anzahl * s);
+    r.felder.forEach(f => {
+      const key = glasBeschreibung(r) + '|' + fmtMM(f.glasB) + ' × ' + fmtMM(f.glasH);
+      glasAgg.set(key, (glasAgg.get(key) || 0) + s);
     });
-    rows.push('<tr><td>' + p.pos + '<span class="sub">' + r.sys.name + ' · ' + artText(p) + ' · ' + r.holz.label + '</span></td>' +
+    r.beschlag.forEach(b => beschlagAgg.set(b.key, (beschlagAgg.get(b.key) || 0) + b.anzahl * s));
+    sonst.dichtung += (r.material.ueberschlagDichtung + r.material.anschlagDichtung) * s;
+    sonst.glasleisten += r.material.glasleistenLfm * s;
+    sonst.silikon.set(pIn.silikon, (sonst.silikon.get(pIn.silikon) || 0) + r.material.silikonKartuschen * s);
+    r.regenschienen.forEach(x => {
+      const key = fmtMM(x.laenge) + ' mm – ' + pIn.regenFarbe;
+      sonst.regen.set(key, (sonst.regen.get(key) || 0) + s);
+    });
+    sonst.lasur += r.material.lasurLiter * s;
+    sonst.flaeche += r.material.anstrichFlaeche * s;
+
+    rows.push('<tr><td>' + pIn.pos + '<span class="sub">' + r.sys.name + ' · ' + artText(pIn) + ' · ' + r.typ.label + ' · ' + r.holz.label + '</span></td>' +
+      '<td>' + (pIn.kommission || '–') + '<span class="sub">' + lageText(pIn) + '</span></td>' +
       '<td class="num">' + fmtMM(r.ram.b) + ' × ' + fmtMM(r.ram.h) + '</td>' +
       '<td class="num">' + s + '</td>' +
-      '<td class="num">' + fmt(r.material.glasFlaeche * s) + ' m²</td>' +
-      '<td class="num">' + fmt(r.material.gesamtLfm * s, 1) + ' lfm</td>' +
-      '<td class="nur-bildschirm"><button class="gefahr" data-del="' + idx + '" style="padding:4px 10px">✕</button></td></tr>');
+      '<td class="num">' + (r.kalk.summe ? fmtEur(r.kalk.richtpreis * s) : '–') + '</td>' +
+      '<td class="nur-bildschirm" style="white-space:nowrap">' +
+      '<button class="sekundaer mini" data-laden="' + idx + '" title="In Erfassung laden">↩</button> ' +
+      '<button class="gefahr mini" data-del="' + idx + '">✕</button></td></tr>');
   });
 
   wrap.innerHTML = tabelle(
-    [{ t: 'Position' }, { t: 'Rahmenaußenmaß [mm]', num: 1 }, { t: 'Stück', num: 1 }, { t: 'Glas', num: 1 }, { t: 'Kantel', num: 1 }, { t: '' }],
+    [{ t: 'Position' }, { t: 'Kommission / Lage' }, { t: 'Rahmenmaß [mm]', num: 1 }, { t: 'Stück', num: 1 }, { t: 'Richtpreis', num: 1 }, { t: '' }],
     rows
   );
 
-  let g = '<h3>Gesamtbedarf Projekt (' + summen.fenster + ' Fenster)</h3>';
-  const gz = [];
-  kantelGesamt.forEach((lfm, label) => gz.push(matZeile('Kantel ' + label, fmt(lfm) + ' lfm', '')));
-  gz.push(matZeile('Holzvolumen gesamt (roh)', fmt(summen.m3, 3) + ' m³', ''));
-  gz.push(matZeile('Isolierglas gesamt', fmt(summen.glas) + ' m²', ''));
-  g += tabelle([{ t: 'Material' }, { t: 'Menge', num: 1 }, { t: '' }], gz);
+  /* ---- Bestelllisten gesamt ---- */
+  let g = '<h2>Bestelllisten (' + fensterGesamt + ' Fenster gesamt)</h2>';
 
-  if (beschlagGesamt.size) {
-    g += '<h3>Beschläge gesamt (Bestellliste)</h3>';
-    const bz = [];
-    beschlagGesamt.forEach((anz, label) => bz.push('<tr><td>' + label + '</td><td class="num">' + anz + '</td></tr>'));
-    g += tabelle([{ t: 'Beschlagteil' }, { t: 'Anzahl', num: 1 }], bz);
+  g += '<h3>Holz (Kanteln, auf 100 mm gerundet)</h3>';
+  const hz = [];
+  [...holzAgg.entries()]
+    .sort((a, b) => {
+      const [tA, , hA, lA] = a[0].split('|'), [tB, , hB, lB] = b[0].split('|');
+      return tA.localeCompare(tB) || hA.localeCompare(hB) || (+lA - +lB);
+    })
+    .forEach(([key, st]) => {
+    const [teil, qs, holzart, laenge] = key.split('|');
+    hz.push('<tr><td>' + teil + ' ' + HOLZ[holzart].label + '</td><td>' + qs + '</td>' +
+      '<td class="num">' + fmtMM(+laenge) + ' mm</td><td class="num">' + st + '</td></tr>');
+  });
+  g += tabelle([{ t: 'Kantel' }, { t: 'Querschnitt' }, { t: 'Länge', num: 1 }, { t: 'Stück', num: 1 }], hz);
+  g += '<p class="hinweis" style="margin:0 0 6px">+ Glasleisten gesamt: <b>' + fmt(sonst.glasleisten, 1) + ' lfm</b></p>';
+
+  g += '<h3>Glas</h3>';
+  const gz = [];
+  [...glasAgg.entries()].forEach(([key, st]) => {
+    const [beschr, mass] = key.split('|');
+    gz.push('<tr><td>' + beschr + '</td><td class="num"><b>' + mass + ' mm</b></td><td class="num">' + st + '</td></tr>');
+  });
+  g += tabelle([{ t: 'Ausführung' }, { t: 'Bestellmaß B × H', num: 1 }, { t: 'Stück', num: 1 }], gz);
+
+  g += '<h3>Beschlag Siegenia (Bestellliste)</h3>';
+  const bz = [];
+  let beschlagSumme = 0;
+  BESCHLAG_DEF.forEach(def => {
+    const anz = beschlagAgg.get(def.key);
+    if (!anz) return;
+    const preis = pB(def.key) * anz;
+    beschlagSumme += preis;
+    bz.push('<tr><td>' + (artNr(def.key) || '<span class="leer">Art.-Nr. eintragen</span>') + '</td><td>' + def.label +
+      '</td><td class="num">' + anz + '</td><td class="num">' + (preis ? fmtEur(preis) : '–') + '</td></tr>');
+  });
+  if (beschlagSumme) bz.push('<tr class="summe"><td colspan="3">Beschlag gesamt</td><td class="num">' + fmtEur(beschlagSumme) + '</td></tr>');
+  g += tabelle([{ t: 'Art.-Nr.' }, { t: 'Beschlagteil' }, { t: 'Anzahl', num: 1 }, { t: 'Summe', num: 1 }], bz);
+
+  g += '<h3>Sonstiges</h3>';
+  const sz = [];
+  sz.push(matZeile('Dichtungen', fmt(sonst.dichtung, 1) + ' lfm', ''));
+  sonst.silikon.forEach((n, farbe) => sz.push(matZeile('Otto Seal S 110 – ' + farbe, n + ' Kartusche(n)', '')));
+  sonst.regen.forEach((n, key) => sz.push(matZeile('Regenschutzschiene ' + key, n + ' Stück', '')));
+  sz.push(matZeile('Oberfläche (Lasur/Farbe)', fmt(sonst.lasur, 1) + ' l', fmt(sonst.flaeche, 1) + ' m², 2 Anstriche'));
+  g += tabelle([{ t: 'Material' }, { t: 'Menge', num: 1 }, { t: 'Hinweis' }], sz);
+
+  if (kalkGesamt > 0) {
+    g += '<h3>Kalkulation gesamt</h3>';
+    const kz = ['<tr><td>Materialkosten alle Positionen</td><td class="num">' + fmtEur(kalkGesamt) + '</td></tr>'];
+    if (stamm.zuschlag > 0) kz.push('<tr class="summe"><td>Richtpreis inkl. ' + fmt(stamm.zuschlag, 0) + ' % Aufschlag</td><td class="num">' + fmtEur(richtGesamt) + '</td></tr>');
+    g += tabelle([{ t: '' }, { t: 'Betrag', num: 1 }], kz);
   }
-  ges.innerHTML = g;
+
+  best.innerHTML = g;
 
   wrap.querySelectorAll('button[data-del]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -834,9 +1252,74 @@ function positionenRendern() {
       positionenRendern();
     });
   });
+  wrap.querySelectorAll('button[data-laden]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const l = positionenLaden();
+      positionInsFormular(l[+btn.dataset.laden]);
+      tabZeigen('erfassen');
+      rechnenUndZeigen();
+    });
+  });
 }
 
-/* ---------------- UI-Verdrahtung ---------------- */
+function positionInsFormular(i) {
+  $('kommission').value = i.kommission || '';
+  $('etage').value = i.etage || '';
+  $('raum').value = i.raum || '';
+  $('pos').value = i.pos;
+  $('system').value = i.system; glasOptionenFuellen();
+  $('typ').value = i.typ;
+  $('art').value = i.art; teilungAnpassen();
+  $('teilung').value = i.teilung;
+  $('rc').value = i.rc;
+  $('din').value = i.din;
+  $('bezug').value = i.bezug;
+  $('breite').value = i.b;
+  $('hoehe').value = i.h;
+  $('stueck').value = i.stueck;
+  $('holz').value = i.holz;
+  $('glas').value = i.glasId;
+  $('glasTyp').value = i.glasTyp; ornamentZeigen();
+  $('ornament').value = i.ornament;
+  $('randverbund').value = i.randverbund;
+  $('vsg').checked = !!i.vsg;
+  $('glasExtra').value = i.glasExtra || '';
+  $('silikon').value = i.silikon;
+  $('obInnenTyp').value = i.obInnenTyp;
+  $('obInnenTon').value = i.obInnenTon || '';
+  $('obAussenTyp').value = i.obAussenTyp;
+  $('obAussenTon').value = i.obAussenTon || '';
+  $('regenFarbe').value = i.regenFarbe;
+  $('regenLaenge').value = i.regenLaenge || '';
+  Object.keys(PROFIL_DEFAULTS).forEach(k => $('p_' + k).value = i.profil[k]);
+  typAnpassen();
+}
+
+/* ================= Stammdaten-Maske ================= */
+function stammMaskeRendern() {
+  const mz = MATERIAL_DEF.map(d =>
+    '<tr><td>' + d.label + '</td><td>' + d.einheit + '</td>' +
+    '<td class="num"><input type="number" min="0" step="0.01" style="max-width:110px" data-mpreis="' + d.key + '" value="' + (stamm.preisM[d.key] || '') + '"></td></tr>');
+  $('matPreise').innerHTML = tabelle([{ t: 'Material' }, { t: 'Einheit' }, { t: 'Preis', num: 1 }], mz);
+
+  const bz = BESCHLAG_DEF.map(d =>
+    '<tr><td>' + d.label + '</td>' +
+    '<td><input type="text" placeholder="Art.-Nr. aus Siegenia-Katalog" data-artnr="' + d.key + '" value="' + (stamm.artnr[d.key] || '') + '"></td>' +
+    '<td class="num"><input type="number" min="0" step="0.01" style="max-width:110px" data-bpreis="' + d.key + '" value="' + (stamm.preisB[d.key] || '') + '"></td></tr>');
+  $('beschlagStamm').innerHTML = tabelle([{ t: 'Beschlagteil' }, { t: 'Artikel-Nr.' }, { t: '€/Stk', num: 1 }], bz);
+
+  $('zuschlag').value = stamm.zuschlag || '';
+
+  document.querySelectorAll('[data-mpreis]').forEach(inp =>
+    inp.addEventListener('input', () => { stamm.preisM[inp.dataset.mpreis] = inp.value; stammSpeichern(); }));
+  document.querySelectorAll('[data-bpreis]').forEach(inp =>
+    inp.addEventListener('input', () => { stamm.preisB[inp.dataset.bpreis] = inp.value; stammSpeichern(); }));
+  document.querySelectorAll('[data-artnr]').forEach(inp =>
+    inp.addEventListener('input', () => { stamm.artnr[inp.dataset.artnr] = inp.value.trim(); stammSpeichern(); }));
+  $('zuschlag').addEventListener('input', () => { stamm.zuschlag = +$('zuschlag').value || 0; stammSpeichern(); });
+}
+
+/* ================= UI ================= */
 function glasOptionenFuellen() {
   const sys = SYSTEME[$('system').value];
   const sel = $('glas');
@@ -844,37 +1327,39 @@ function glasOptionenFuellen() {
   sel.innerHTML = sys.glas.map(g => '<option value="' + g.id + '">' + g.label + '</option>').join('');
   if (sys.glas.some(g => g.id === alt)) sel.value = alt;
 }
-
 function profilFelderSetzen() {
-  const sys = SYSTEME[$('system').value];
-  $('p_rahmenB').value = sys.rahmen.fertigB;
-  $('p_fluegelB').value = sys.fluegel.fertigB;
-  $('p_pfostenB').value = sys.pfosten.fertigB;
-  $('p_anschlag').value = PROFIL_DEFAULTS.anschlag;
-  $('p_falzluft').value = PROFIL_DEFAULTS.falzluft;
-  $('p_ueberschlag').value = PROFIL_DEFAULTS.ueberschlag;
-  $('p_glaseinstand').value = PROFIL_DEFAULTS.glaseinstand;
-  $('p_glasspiel').value = PROFIL_DEFAULTS.glasspiel;
-  $('p_zugabe').value = PROFIL_DEFAULTS.zugabe;
-  $('p_fuge').value = PROFIL_DEFAULTS.fuge;
-  $('p_mittelfuge').value = PROFIL_DEFAULTS.mittelfuge;
+  Object.entries(PROFIL_DEFAULTS).forEach(([k, v]) => $('p_' + k).value = v);
 }
-
 function teilungAnpassen() {
   const fest = $('art').value === 'fest';
-  const stulpOpt = $('teilung').querySelector('option[value="stulp"]');
-  stulpOpt.disabled = fest;
+  $('teilung').querySelector('option[value="stulp"]').disabled = fest;
   if (fest && $('teilung').value === 'stulp') $('teilung').value = 'pfosten';
 }
-
+function typAnpassen() {
+  $('regenBereich').style.display = $('typ').value === 'standard' ? '' : 'none';
+}
+function ornamentZeigen() {
+  $('ornamentFeld').style.display = $('glasTyp').value === 'ornament' ? '' : 'none';
+}
+function tabZeigen(name) {
+  ['erfassen', 'projekt', 'stamm'].forEach(t => {
+    $('tab-' + t).style.display = t === name ? '' : 'none';
+  });
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('aktiv', b.dataset.tab === name));
+  if (name === 'projekt') positionenRendern();
+}
 function rechnenUndZeigen() {
   const r = berechne(eingabenLesen());
   $('ergebnisInhalt').innerHTML = ergebnisHTML(r);
   return r;
 }
 
-$('system').addEventListener('change', () => { glasOptionenFuellen(); profilFelderSetzen(); });
+document.querySelectorAll('nav.tabs button').forEach(b =>
+  b.addEventListener('click', () => tabZeigen(b.dataset.tab)));
+$('system').addEventListener('change', glasOptionenFuellen);
 $('art').addEventListener('change', teilungAnpassen);
+$('typ').addEventListener('change', typAnpassen);
+$('glasTyp').addEventListener('change', ornamentZeigen);
 $('btnBerechnen').addEventListener('click', rechnenUndZeigen);
 $('btnHinzufuegen').addEventListener('click', () => {
   const i = eingabenLesen();
@@ -884,13 +1369,12 @@ $('btnHinzufuegen').addEventListener('click', () => {
   list.push(i);
   positionenSpeichern(list);
   rechnenUndZeigen();
-  positionenRendern();
+  tabZeigen('projekt');
 });
 $('btnLeeren').addEventListener('click', () => {
   if (confirm('Alle Positionen wirklich löschen?')) { positionenSpeichern([]); positionenRendern(); }
 });
 $('btnDrucken').addEventListener('click', () => window.print());
-
 ['breite', 'hoehe', 'stueck'].forEach(id =>
   $(id).addEventListener('keydown', e => { if (e.key === 'Enter') rechnenUndZeigen(); }));
 
@@ -898,7 +1382,9 @@ $('btnDrucken').addEventListener('click', () => window.print());
 glasOptionenFuellen();
 profilFelderSetzen();
 teilungAnpassen();
-positionenRendern();
+typAnpassen();
+ornamentZeigen();
+stammMaskeRendern();
 rechnenUndZeigen();
 </script>
 </body>
