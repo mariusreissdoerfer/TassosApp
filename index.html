@@ -789,10 +789,10 @@ function berechne(i) {
     }
   }
 
-  /* ---- Holz-Bestellliste: Kantellängen auf 100 mm aufrunden (800–3500) ---- */
+  /* ---- Holz-Bestellliste: Fertigmaß auf 100 mm aufrunden (800–3500), 865 → 900 ---- */
   const holzBestellMap = new Map();
   zuschnitt.filter(z => z.holzteil).forEach(z => {
-    const l = kantelLaenge(z.laenge);
+    const l = kantelLaenge(z.laenge - p.zugabe);
     if (l > 3500) warnungen.push(z.teil + ': Bestelllänge ' + fmtMM(l) + ' mm über max. Lieferlänge 3500 mm!');
     const key = z.holzteil + '|' + z.qs + '|' + l;
     const e = holzBestellMap.get(key) || { teil: z.holzteil, qs: z.qs, laenge: l, stueck: 0 };
