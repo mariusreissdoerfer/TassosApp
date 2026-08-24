@@ -573,6 +573,8 @@
   <div id="bestellInhalt"></div>
   <div class="btnrow nur-bildschirm">
     <button id="btnDrucken" class="sekundaer">🖨 Drucken / PDF</button>
+    <button id="btnProjektSpeichern" class="sekundaer">💾 Projekt speichern</button>
+    <button id="btnProjektOeffnen" class="sekundaer">📂 Projekt öffnen</button>
     <button id="btnLeeren" class="gefahr">Positionsliste löschen</button>
   </div>
   <p class="hinweis">
@@ -599,6 +601,11 @@
     Einmal hinterlegen – wird lokal im Browser gespeichert. Preise fließen automatisch in die
     Kalkulation jeder Position ein, Artikelnummern in die Beschlag-Bestellliste.
   </p>
+  <div class="btnrow" style="margin:0 0 14px">
+    <button id="btnStandardPreise" class="sekundaer">Übliche Richtpreise eintragen</button>
+    <button id="btnStammSpeichern" class="sekundaer">💾 Stammdaten speichern</button>
+    <button id="btnStammOeffnen" class="sekundaer">📂 Stammdaten öffnen</button>
+  </div>
   <h3>Materialpreise</h3>
   <div id="matPreise"></div>
   <h3>Beschlagteile Siegenia (Artikel-Nr. + Preis)</h3>
@@ -613,6 +620,8 @@
 </section>
 
 </div>
+
+<input type="file" id="dateiInput" accept=".json,application/json" style="display:none">
 
 <script>
 'use strict';
@@ -744,6 +753,34 @@ const MATERIAL_DEF = [
   { key: 'farbe',        label: 'RAL-Farbe deckend', einheit: '€/l' },
   { key: 'regenschiene', label: 'Regenschutzschiene Alu', einheit: '€/lfm' }
 ];
+
+/* Übliche Richtpreise (EK-Niveau Werkstatt, Stand 2026 – an eigene Konditionen anpassen!) */
+const STANDARD_PREISE = {
+  zuschlag: 30,
+  preisM: {
+    holz_fichte: 9.5, holz_kiefer: 11, holz_laerche: 14, holz_meranti: 13, holz_eiche: 19,
+    glasleiste: 2.5,
+    glas_2f: 45, glas_3f: 65,
+    zu_ornament: 15, zu_vsg: 40,
+    dichtung: 1.2, silikon: 8.5,
+    lasur: 22, farbe: 24,
+    regenschiene: 12
+  },
+  preisB: {
+    ecklager: 9, scherenlager: 6,
+    schere_1: 9, schere_2: 10, schere_3: 11, schere_4: 13,
+    zusatzschere: 12,
+    getr_dk_1: 12, getr_dk_2: 13, getr_dk_3: 15, getr_dk_4: 18,
+    getr_d_1: 10, getr_d_2: 11, getr_d_3: 12, getr_d_4: 14,
+    getr_st_1: 14, getr_st_2: 15, getr_st_3: 17, getr_st_4: 19,
+    eckuml: 5, mv: 7, zv: 8, pilz: 9,
+    sb: 1.5, sb_rc: 4.5,
+    drehband: 7, kipplager: 6, fangschere: 8, kippverschluss: 10,
+    schliesskloben: 3,
+    griff: 9, griff_ab: 18,
+    schrauben: 6, kloetze: 2
+  }
+};
 
 /* ================= Hilfen ================= */
 const $ = id => document.getElementById(id);
@@ -1444,6 +1481,74 @@ function produktionRendern() {
   }).join('');
 }
 
+/* ================= Datei speichern / öffnen ================= */
+function dateiSpeichern(name, obj) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+}
+function dateiOeffnen(cb) {
+  const inp = $('dateiInput');
+  inp.value = '';
+  inp.onchange = () => {
+    const f = inp.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try { cb(JSON.parse(reader.result)); }
+      catch (e) { alert('Datei konnte nicht gelesen werden (kein gültiges Format).'); }
+    };
+    reader.readAsText(f);
+  };
+  inp.click();
+}
+function datumKurz() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function projektSpeichern() {
+  const list = positionenLaden();
+  if (!list.length) { alert('Keine Positionen vorhanden.'); return; }
+  const komm = (list[0].kommission || 'projekt').replace(/[^\wäöüÄÖÜß-]+/g, '_');
+  dateiSpeichern(komm + '_' + datumKurz() + '.json',
+    { typ: 'holzfensterplaner-projekt', version: 1, gespeichert: datumKurz(), positionen: list });
+}
+function stammAlsDateiSpeichern() {
+  dateiSpeichern('stammdaten_' + datumKurz() + '.json',
+    { typ: 'holzfensterplaner-stammdaten', version: 1, gespeichert: datumKurz(), stamm });
+}
+function geoeffneteDatei(d) {
+  if (d && d.typ === 'holzfensterplaner-projekt' && Array.isArray(d.positionen)) {
+    const gueltig = d.positionen.filter(p => p && p.b && p.h && p.profil);
+    if (!gueltig.length) { alert('Die Datei enthält keine gültigen Positionen.'); return; }
+    let list = positionenLaden();
+    if (list.length) {
+      const ersetzen = confirm(gueltig.length + ' Position(en) gefunden.\nOK = aktuelle Liste ERSETZEN · Abbrechen = ANHÄNGEN');
+      list = ersetzen ? gueltig : list.concat(gueltig);
+    } else {
+      list = gueltig;
+    }
+    positionenSpeichern(list);
+    positionenRendern();
+    alert('Projekt geöffnet – ' + gueltig.length + ' Position(en) geladen.');
+  } else if (d && d.typ === 'holzfensterplaner-stammdaten' && d.stamm) {
+    stamm = {
+      artnr: d.stamm.artnr || {}, preisB: d.stamm.preisB || {},
+      preisM: d.stamm.preisM || {}, zuschlag: +d.stamm.zuschlag || 0
+    };
+    stammSpeichern();
+    stammMaskeRendern();
+    alert('Stammdaten geöffnet und übernommen.');
+  } else {
+    alert('Unbekanntes Dateiformat – bitte eine mit diesem Planer gespeicherte Datei wählen.');
+  }
+}
+
 /* ================= Kalkulation ================= */
 function kalkulationRendern() {
   const list = positionenLaden();
@@ -1790,6 +1895,20 @@ $('btnLeeren').addEventListener('click', () => {
 $('btnDrucken').addEventListener('click', () => window.print());
 $('btnDruckenProd').addEventListener('click', () => window.print());
 $('btnDruckenKalk').addEventListener('click', () => window.print());
+$('btnProjektSpeichern').addEventListener('click', projektSpeichern);
+$('btnProjektOeffnen').addEventListener('click', () => dateiOeffnen(geoeffneteDatei));
+$('btnStammSpeichern').addEventListener('click', stammAlsDateiSpeichern);
+$('btnStammOeffnen').addEventListener('click', () => dateiOeffnen(geoeffneteDatei));
+$('btnStandardPreise').addEventListener('click', () => {
+  const hatPreise = Object.values(stamm.preisM).some(v => +v > 0) || Object.values(stamm.preisB).some(v => +v > 0);
+  if (hatPreise && !confirm('Vorhandene Preise mit den üblichen Richtpreisen überschreiben?\n(Artikelnummern bleiben erhalten.)')) return;
+  stamm.preisM = { ...stamm.preisM, ...STANDARD_PREISE.preisM };
+  stamm.preisB = { ...stamm.preisB, ...STANDARD_PREISE.preisB };
+  stamm.zuschlag = STANDARD_PREISE.zuschlag;
+  stammSpeichern();
+  stammMaskeRendern();
+  alert('Übliche Richtpreise eingetragen (EK-Niveau, Aufschlag 30 %).\nBitte an die eigenen Einkaufskonditionen anpassen.');
+});
 $('obInnenTyp').addEventListener('change', obFelderAnpassen);
 $('obAussenTyp').addEventListener('change', obFelderAnpassen);
 ['breite', 'hoehe', 'stueck'].forEach(id =>
