@@ -237,6 +237,18 @@
   .ps-solbank table { max-width: 340px; margin-bottom: 4px; }
   .ps-solbank td.sb-wert { min-width: 74px; height: 27px; font-weight: 700; }
   .ps-sb-skizze { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; background: #fff; }
+  .ps-balkontuer {
+    background: #fde8c8;
+    border: 2px solid #e07020;
+    border-radius: 6px;
+    padding: 5px 12px;
+    margin: 2px 0 8px;
+    font-weight: 800;
+    letter-spacing: .02em;
+    color: #7a3c00;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .ps-chips span.chip-balkontuer { background: #fde8c8; border-color: #e07020; color: #7a3c00; }
   .ps-fuss { border-top: 1px solid #2b2b2b; padding: 8px 14px; }
   .ps-fuss .bemerkung { min-height: 34px; border: 1px dashed #999; border-radius: 6px; padding: 6px 10px; margin-top: 4px; font-weight: 600; }
   .ps-warn { color: var(--rot); font-weight: 700; font-size: .82rem; padding: 4px 14px 0; }
@@ -492,7 +504,13 @@
     </div>
   </div>
 
-  <h3>Solbank – Falz &amp; Nut <span style="font-weight:400;color:#888">(optional – steht immer auf der Produktionsliste, ggf. handschriftlich ausfüllen)</span></h3>
+  <h3>Blendrahmen unten – Solbank, Falz &amp; Nut <span style="font-weight:400;color:#888">(optional – steht immer auf der Produktionsliste, ggf. handschriftlich ausfüllen)</span></h3>
+  <div class="grid" style="margin-bottom:8px">
+    <div>
+      <label for="balkontuer">Balkontür (flache Schwelle)</label>
+      <input id="balkontuer" type="checkbox">
+    </div>
+  </div>
   <div class="tblwrap">
     <table style="max-width:420px">
       <thead><tr><th></th><th></th><th class="num">Tiefe [mm]</th><th class="num">Höhe [mm]</th></tr></thead>
@@ -780,6 +798,7 @@ function eingabenLesen() {
     obAussenTon: $('obAussenTyp').value === 'lasur' ? $('obAussenTonSel').value : $('obAussenTon').value.trim(),
     regenFarbe: $('regenFarbe').value,
     regenLaenge: +$('regenLaenge').value || 0,
+    balkontuer: $('balkontuer').checked,
     solbank: {
       fiT: $('sb_fiT').value, fiH: $('sb_fiH').value,
       faT: $('sb_faT').value, faH: $('sb_faH').value,
@@ -1196,6 +1215,7 @@ function ergebnisHTML(r) {
     '<span>Außen: ' + obText(i.obAussenTyp, i.obAussenTon) + '</span>' +
     '<span>Silikon: S 110 ' + i.silikon + '</span>' +
     (i.typ === 'standard' ? '<span>Regenschiene: ' + i.regenFarbe + '</span>' : '<span>' + r.typ.wetterschutz + '</span>') +
+    (i.balkontuer ? '<span style="background:#fde8c8;border-color:#e07020;color:#7a3c00;font-weight:700">Balkontür · flache Schwelle</span>' : '') +
     '<span>' + i.stueck + ' Stück</span>' +
     '</div>';
 
@@ -1300,6 +1320,7 @@ function prodSheetHTML(r) {
     (r.fluegel.length && i.teilung === '1' ? '<span>' + i.din + '</span>' : '') +
     (i.rc !== 'std' ? '<span>Sicherheit ' + RC[i.rc].label + '</span>' : '') +
     '<span>' + r.typ.wetterschutz + '</span>' +
+    (i.balkontuer ? '<span class="chip-balkontuer">Balkontür · flache Schwelle</span>' : '') +
     '</div>';
 
   r.warnungen.forEach(w => h += '<div class="ps-warn">⚠ ' + w + '</div>');
@@ -1355,7 +1376,8 @@ function prodSheetHTML(r) {
   const sb = i.solbank || {};
   const sbZelle = v => '<td class="num sb-wert">' + (v ? fmtMM(+v) : '') + '</td>';
   h += '<div class="ps-solbank">' +
-    '<div style="flex:1;min-width:240px"><h4 style="margin-top:0">Solbank – Falz &amp; Nut [mm]</h4>' +
+    '<div style="flex:1;min-width:240px"><h4 style="margin-top:0">Blendrahmen unten – Solbank, Falz &amp; Nut [mm]</h4>' +
+    (i.balkontuer ? '<div class="ps-balkontuer">BALKONTÜR – flache Schwelle ausführen!</div>' : '') +
     '<div class="tblwrap"><table>' +
     '<thead><tr><th></th><th></th><th class="num">Tiefe</th><th class="num">Höhe</th></tr></thead><tbody>' +
     '<tr><td>Falz</td><td>innen</td>' + sbZelle(sb.fiT) + sbZelle(sb.fiH) + '</tr>' +
@@ -1374,22 +1396,28 @@ function prodSheetHTML(r) {
   return h;
 }
 
-/* Profilskizze für den Solbankbereich: T = Tiefe (waagerecht), H = Höhe (senkrecht) */
+/* Profilskizze Solbank – dem Werkstattblatt nachgebildet:
+   Profil mit steiler linker und flacher rechter Aufdeckschräge, Nut rechts,
+   gestufte linke Seite, Höhen-Messpfeil (magenta) und H/T-Legende. */
 function solbankSkizze() {
-  return '<svg width="160" height="130" viewBox="0 0 160 130" role="img" aria-label="Profilskizze Solbank">' +
-    '<polygon points="25,30 95,30 95,50 120,50 120,88 78,102 78,92 62,92 62,102 40,102 40,78 25,78" ' +
-      'fill="#f4ead9" stroke="#2b2b2b" stroke-width="1.5"/>' +
-    // T-Pfeil (waagerecht, oben)
-    '<line x1="25" y1="16" x2="120" y2="16" stroke="#2e7d32" stroke-width="1.4"/>' +
-    '<polygon points="25,16 31,13 31,19" fill="#2e7d32"/>' +
-    '<polygon points="120,16 114,13 114,19" fill="#2e7d32"/>' +
-    '<text x="72" y="12" text-anchor="middle" font-size="12" font-weight="700" fill="#2e7d32">T</text>' +
-    // H-Pfeil (senkrecht, rechts)
-    '<line x1="140" y1="30" x2="140" y2="102" stroke="#e07020" stroke-width="1.4"/>' +
-    '<polygon points="140,30 137,36 143,36" fill="#e07020"/>' +
-    '<polygon points="140,102 137,96 143,96" fill="#e07020"/>' +
-    '<text x="151" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="#e07020">H</text>' +
-    '<text x="72" y="122" text-anchor="middle" font-size="9" fill="#666">Profil Solbank</text>' +
+  return '<svg width="200" height="185" viewBox="0 0 230 210" role="img" aria-label="Profilskizze Solbank">' +
+    // Profilquerschnitt
+    '<polygon points="100,18 152,44 152,52 168,60 168,74 146,74 146,94 168,94 168,158 64,158 64,120 42,120 42,84 60,84 60,52" ' +
+      'fill="none" stroke="#6b6b6b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>' +
+    // Höhen-Messklammer rechts (magenta)
+    '<line x1="196" y1="74" x2="196" y2="158" stroke="#d63384" stroke-width="1.6"/>' +
+    '<line x1="196" y1="74" x2="176" y2="74" stroke="#d63384" stroke-width="1.6"/>' +
+    '<polygon points="172,74 181,70 181,78" fill="#d63384"/>' +
+    '<line x1="196" y1="158" x2="176" y2="158" stroke="#d63384" stroke-width="1.6"/>' +
+    '<polygon points="172,158 181,154 181,162" fill="#d63384"/>' +
+    // Legende: H (senkrecht) / T (waagerecht) mit kleinen Richtungspfeilen
+    '<text x="18" y="172" font-size="30" font-weight="800" fill="#e07020">H</text>' +
+    '<line x1="52" y1="150" x2="52" y2="168" stroke="#2b2b2b" stroke-width="1.4"/>' +
+    '<polygon points="52,146 49,153 55,153" fill="#2b2b2b"/>' +
+    '<polygon points="52,172 49,165 55,165" fill="#2b2b2b"/>' +
+    '<line x1="56" y1="176" x2="72" y2="176" stroke="#2b2b2b" stroke-width="1.4"/>' +
+    '<polygon points="76,176 69,173 69,179" fill="#2b2b2b"/>' +
+    '<text x="62" y="205" font-size="30" font-weight="800" fill="#2e7d32">T</text>' +
     '</svg>';
 }
 
@@ -1573,6 +1601,7 @@ function positionInsFormular(i) {
   else $('obAussenTon').value = i.obAussenTon || '';
   $('regenFarbe').value = i.regenFarbe;
   $('regenLaenge').value = i.regenLaenge || '';
+  $('balkontuer').checked = !!i.balkontuer;
   const sb = i.solbank || {};
   $('sb_fiT').value = sb.fiT || ''; $('sb_fiH').value = sb.fiH || '';
   $('sb_faT').value = sb.faT || ''; $('sb_faH').value = sb.faH || '';
