@@ -106,6 +106,8 @@
   td.num, th.num { text-align: right; white-space: nowrap; }
   td input { padding: 4px 6px; font-size: .85rem; }
   .btnrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .projektbar { display: flex; gap: 10px 14px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
+  .projektbar > div { min-width: 180px; flex: 1 1 200px; max-width: 320px; }
   button {
     border: none;
     border-radius: 8px;
@@ -568,7 +570,20 @@
 
 <!-- ================= TAB: PROJEKT ================= -->
 <section class="panel" id="tab-projekt" style="display:none">
-  <h2>Positionsliste (Projekt)</h2>
+  <h2>Projekt</h2>
+  <div class="projektbar nur-bildschirm">
+    <div>
+      <label for="projektWahl">Projekt öffnen</label>
+      <select id="projektWahl"></select>
+    </div>
+    <div>
+      <label for="projektName">Projektname</label>
+      <input id="projektName" type="text" placeholder="z. B. BV Müller Neubau">
+    </div>
+    <button id="btnProjektNeu">＋ Neues Projekt</button>
+    <button id="btnProjektLoeschen" class="gefahr">Projekt löschen</button>
+  </div>
+  <h2>Positionsliste</h2>
   <div id="positionenInhalt"><p class="leer">Noch keine Positionen erfasst.</p></div>
   <div id="bestellInhalt"></div>
   <div class="btnrow nur-bildschirm">
@@ -793,10 +808,42 @@ function schereGr(ffb) { return ffb <= 600 ? 1 : ffb <= 800 ? 2 : ffb <= 1100 ? 
 function kantelLaenge(mm) { return Math.max(800, Math.ceil(mm / 100) * 100); }
 
 /* ================= Persistenz ================= */
-const LS_POS = 'holzfensterPlanerPositionen_v2';
+const LS_POS = 'holzfensterPlanerPositionen_v2';   // Alt-Format, wird migriert
+const LS_PROJ = 'holzfensterPlanerProjekte_v1';
 const LS_STAMM = 'holzfensterPlanerStamm_v1';
-const positionenLaden = () => { try { return JSON.parse(localStorage.getItem(LS_POS)) || []; } catch (e) { return []; } };
-const positionenSpeichern = l => localStorage.setItem(LS_POS, JSON.stringify(l));
+
+function projekteLaden() {
+  try {
+    const s = JSON.parse(localStorage.getItem(LS_PROJ));
+    if (s && Array.isArray(s.projekte) && s.projekte.length) return s;
+  } catch (e) { /* neu anlegen */ }
+  let alt = [];
+  try { alt = JSON.parse(localStorage.getItem(LS_POS)) || []; } catch (e) { alt = []; }
+  const p = { id: 'p' + Date.now(), name: 'Projekt 1', positionen: alt };
+  const store = { aktivId: p.id, projekte: [p] };
+  localStorage.setItem(LS_PROJ, JSON.stringify(store));
+  localStorage.removeItem(LS_POS);
+  return store;
+}
+let projStore = projekteLaden();
+const projekteSpeichern = () => localStorage.setItem(LS_PROJ, JSON.stringify(projStore));
+function aktivesProjekt() {
+  let p = projStore.projekte.find(x => x.id === projStore.aktivId);
+  if (!p) { p = projStore.projekte[0]; projStore.aktivId = p.id; }
+  return p;
+}
+const positionenLaden = () => aktivesProjekt().positionen || [];
+function positionenSpeichern(l) {
+  aktivesProjekt().positionen = l;
+  projekteSpeichern();
+}
+function projektAnlegen(name, positionen) {
+  const p = { id: 'p' + Date.now() + Math.floor(Math.random() * 1000), name, positionen: positionen || [] };
+  projStore.projekte.push(p);
+  projStore.aktivId = p.id;
+  projekteSpeichern();
+  return p;
+}
 function stammLaden() {
   let s;
   try { s = JSON.parse(localStorage.getItem(LS_STAMM)) || {}; } catch (e) { s = {}; }
@@ -1475,10 +1522,11 @@ function produktionRendern() {
     wrap.innerHTML = '<p class="leer">Noch keine Positionen erfasst – im Tab „Erfassen“ Fenster zur Positionsliste hinzufügen.</p>';
     return;
   }
-  wrap.innerHTML = list.map(pIn => {
-    const r = berechne(pIn);
-    return r.fehler ? '' : prodSheetHTML(r);
-  }).join('');
+  wrap.innerHTML = '<p style="margin:0 0 10px;font-weight:600;color:#5d4630">Projekt: ' + aktivesProjekt().name + '</p>' +
+    list.map(pIn => {
+      const r = berechne(pIn);
+      return r.fehler ? '' : prodSheetHTML(r);
+    }).join('');
 }
 
 /* ================= Datei speichern / öffnen ================= */
@@ -1511,12 +1559,18 @@ function datumKurz() {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
+function dateinameSicher(s) {
+  return (s || 'projekt')
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue')
+    .replace(/Ä/g, 'Ae').replace(/Ö/g, 'Oe').replace(/Ü/g, 'Ue')
+    .replace(/ß/g, 'ss')
+    .replace(/[^\w-]+/g, '_');
+}
 function projektSpeichern() {
-  const list = positionenLaden();
-  if (!list.length) { alert('Keine Positionen vorhanden.'); return; }
-  const komm = (list[0].kommission || 'projekt').replace(/[^\wäöüÄÖÜß-]+/g, '_');
-  dateiSpeichern(komm + '_' + datumKurz() + '.json',
-    { typ: 'holzfensterplaner-projekt', version: 1, gespeichert: datumKurz(), positionen: list });
+  const p = aktivesProjekt();
+  if (!p.positionen.length) { alert('Keine Positionen im Projekt „' + p.name + '“.'); return; }
+  dateiSpeichern(dateinameSicher(p.name) + '_' + datumKurz() + '.json',
+    { typ: 'holzfensterplaner-projekt', version: 2, gespeichert: datumKurz(), name: p.name, positionen: p.positionen });
 }
 function stammAlsDateiSpeichern() {
   dateiSpeichern('stammdaten_' + datumKurz() + '.json',
@@ -1526,16 +1580,12 @@ function geoeffneteDatei(d) {
   if (d && d.typ === 'holzfensterplaner-projekt' && Array.isArray(d.positionen)) {
     const gueltig = d.positionen.filter(p => p && p.b && p.h && p.profil);
     if (!gueltig.length) { alert('Die Datei enthält keine gültigen Positionen.'); return; }
-    let list = positionenLaden();
-    if (list.length) {
-      const ersetzen = confirm(gueltig.length + ' Position(en) gefunden.\nOK = aktuelle Liste ERSETZEN · Abbrechen = ANHÄNGEN');
-      list = ersetzen ? gueltig : list.concat(gueltig);
-    } else {
-      list = gueltig;
-    }
-    positionenSpeichern(list);
+    let name = d.name || (gueltig[0].kommission || 'Importiertes Projekt');
+    while (projStore.projekte.some(p => p.name === name)) name += ' (2)';
+    projektAnlegen(name, gueltig);
+    projektBarRendern();
     positionenRendern();
-    alert('Projekt geöffnet – ' + gueltig.length + ' Position(en) geladen.');
+    alert('Projekt „' + name + '“ geöffnet – ' + gueltig.length + ' Position(en). Es ist jetzt das aktive Projekt.');
   } else if (d && d.typ === 'holzfensterplaner-stammdaten' && d.stamm) {
     stamm = {
       artnr: d.stamm.artnr || {}, preisB: d.stamm.preisB || {},
@@ -1547,6 +1597,32 @@ function geoeffneteDatei(d) {
   } else {
     alert('Unbekanntes Dateiformat – bitte eine mit diesem Planer gespeicherte Datei wählen.');
   }
+}
+
+/* ================= Projektverwaltung (Browser) ================= */
+function projektBarRendern() {
+  const sel = $('projektWahl');
+  sel.innerHTML = projStore.projekte.map(p =>
+    '<option value="' + p.id + '"' + (p.id === projStore.aktivId ? ' selected' : '') + '>' +
+    p.name + ' (' + (p.positionen || []).length + ' Pos.)</option>').join('');
+  $('projektName').value = aktivesProjekt().name;
+}
+function neuesProjekt() {
+  const name = prompt('Name des neuen Projekts:', 'Projekt ' + (projStore.projekte.length + 1));
+  if (name === null) return;
+  projektAnlegen(name.trim() || 'Projekt ' + (projStore.projekte.length + 1), []);
+  projektBarRendern();
+  positionenRendern();
+}
+function projektLoeschen() {
+  const p = aktivesProjekt();
+  if (!confirm('Projekt „' + p.name + '“ mit ' + p.positionen.length + ' Position(en) wirklich löschen?')) return;
+  projStore.projekte = projStore.projekte.filter(x => x.id !== p.id);
+  if (!projStore.projekte.length) projStore.projekte.push({ id: 'p' + Date.now(), name: 'Projekt 1', positionen: [] });
+  projStore.aktivId = projStore.projekte[0].id;
+  projekteSpeichern();
+  projektBarRendern();
+  positionenRendern();
 }
 
 /* ================= Kalkulation ================= */
@@ -1568,6 +1644,7 @@ function kalkulationRendern() {
   }
 
   /* ---- Übersicht ---- */
+  h += '<p style="margin:0 0 10px;font-weight:600;color:#5d4630">Projekt: ' + aktivesProjekt().name + '</p>';
   h += '<h3 style="margin-top:0">Übersicht</h3>';
   let matSumme = 0, richtSumme = 0, fensterSumme = 0;
   const uz = ergebnisse.map(({ pIn, r }) => {
@@ -1862,7 +1939,7 @@ function tabZeigen(name) {
     $('tab-' + t).style.display = t === name ? '' : 'none';
   });
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('aktiv', b.dataset.tab === name));
-  if (name === 'projekt') positionenRendern();
+  if (name === 'projekt') { projektBarRendern(); positionenRendern(); }
   if (name === 'produktion') produktionRendern();
   if (name === 'kalkulation') kalkulationRendern();
 }
@@ -1897,6 +1974,20 @@ $('btnDruckenProd').addEventListener('click', () => window.print());
 $('btnDruckenKalk').addEventListener('click', () => window.print());
 $('btnProjektSpeichern').addEventListener('click', projektSpeichern);
 $('btnProjektOeffnen').addEventListener('click', () => dateiOeffnen(geoeffneteDatei));
+$('btnProjektNeu').addEventListener('click', neuesProjekt);
+$('btnProjektLoeschen').addEventListener('click', projektLoeschen);
+$('projektWahl').addEventListener('change', () => {
+  projStore.aktivId = $('projektWahl').value;
+  projekteSpeichern();
+  projektBarRendern();
+  positionenRendern();
+});
+$('projektName').addEventListener('input', () => {
+  aktivesProjekt().name = $('projektName').value.trim() || 'Projekt';
+  projekteSpeichern();
+  const opt = $('projektWahl').querySelector('option[value="' + projStore.aktivId + '"]');
+  if (opt) opt.textContent = aktivesProjekt().name + ' (' + positionenLaden().length + ' Pos.)';
+});
 $('btnStammSpeichern').addEventListener('click', stammAlsDateiSpeichern);
 $('btnStammOeffnen').addEventListener('click', () => dateiOeffnen(geoeffneteDatei));
 $('btnStandardPreise').addEventListener('click', () => {
