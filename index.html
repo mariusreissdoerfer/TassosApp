@@ -1625,6 +1625,74 @@ function projektLoeschen() {
   positionenRendern();
 }
 
+/* ================= Datei speichern / öffnen ================= */
+function dateiSpeichern(name, obj) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+}
+function dateiOeffnen(cb) {
+  const inp = $('dateiInput');
+  inp.value = '';
+  inp.onchange = () => {
+    const f = inp.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try { cb(JSON.parse(reader.result)); }
+      catch (e) { alert('Datei konnte nicht gelesen werden (kein gültiges Format).'); }
+    };
+    reader.readAsText(f);
+  };
+  inp.click();
+}
+function datumKurz() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function projektSpeichern() {
+  const list = positionenLaden();
+  if (!list.length) { alert('Keine Positionen vorhanden.'); return; }
+  const komm = (list[0].kommission || 'projekt').replace(/[^\wäöüÄÖÜß-]+/g, '_');
+  dateiSpeichern(komm + '_' + datumKurz() + '.json',
+    { typ: 'holzfensterplaner-projekt', version: 1, gespeichert: datumKurz(), positionen: list });
+}
+function stammAlsDateiSpeichern() {
+  dateiSpeichern('stammdaten_' + datumKurz() + '.json',
+    { typ: 'holzfensterplaner-stammdaten', version: 1, gespeichert: datumKurz(), stamm });
+}
+function geoeffneteDatei(d) {
+  if (d && d.typ === 'holzfensterplaner-projekt' && Array.isArray(d.positionen)) {
+    const gueltig = d.positionen.filter(p => p && p.b && p.h && p.profil);
+    if (!gueltig.length) { alert('Die Datei enthält keine gültigen Positionen.'); return; }
+    let list = positionenLaden();
+    if (list.length) {
+      const ersetzen = confirm(gueltig.length + ' Position(en) gefunden.\nOK = aktuelle Liste ERSETZEN · Abbrechen = ANHÄNGEN');
+      list = ersetzen ? gueltig : list.concat(gueltig);
+    } else {
+      list = gueltig;
+    }
+    positionenSpeichern(list);
+    positionenRendern();
+    alert('Projekt geöffnet – ' + gueltig.length + ' Position(en) geladen.');
+  } else if (d && d.typ === 'holzfensterplaner-stammdaten' && d.stamm) {
+    stamm = {
+      artnr: d.stamm.artnr || {}, preisB: d.stamm.preisB || {},
+      preisM: d.stamm.preisM || {}, zuschlag: +d.stamm.zuschlag || 0
+    };
+    stammSpeichern();
+    stammMaskeRendern();
+    alert('Stammdaten geöffnet und übernommen.');
+  } else {
+    alert('Unbekanntes Dateiformat – bitte eine mit diesem Planer gespeicherte Datei wählen.');
+  }
+}
+
 /* ================= Kalkulation ================= */
 function kalkulationRendern() {
   const list = positionenLaden();
