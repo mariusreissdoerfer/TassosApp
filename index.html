@@ -233,6 +233,10 @@
   .ps-boxen > div:last-child { border-right: none; }
   .ps-boxen b { display: block; font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: #666; }
   .ps-boxen span { font-weight: 700; }
+  .ps-solbank { display: flex; flex-wrap: wrap; gap: 14px; border-top: 1px solid #2b2b2b; padding: 8px 14px; align-items: flex-start; }
+  .ps-solbank table { max-width: 340px; margin-bottom: 4px; }
+  .ps-solbank td.sb-wert { min-width: 74px; height: 27px; font-weight: 700; }
+  .ps-sb-skizze { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; background: #fff; }
   .ps-fuss { border-top: 1px solid #2b2b2b; padding: 8px 14px; }
   .ps-fuss .bemerkung { min-height: 34px; border: 1px dashed #999; border-radius: 6px; padding: 6px 10px; margin-top: 4px; font-weight: 600; }
   .ps-warn { color: var(--rot); font-weight: 700; font-size: .82rem; padding: 4px 14px 0; }
@@ -486,6 +490,19 @@
         <input id="regenLaenge" type="number" min="0" step="1" placeholder="auto">
       </div>
     </div>
+  </div>
+
+  <h3>Solbank – Falz &amp; Nut <span style="font-weight:400;color:#888">(optional – steht immer auf der Produktionsliste, ggf. handschriftlich ausfüllen)</span></h3>
+  <div class="tblwrap">
+    <table style="max-width:420px">
+      <thead><tr><th></th><th></th><th class="num">Tiefe [mm]</th><th class="num">Höhe [mm]</th></tr></thead>
+      <tbody>
+        <tr><td>Falz</td><td>innen</td><td><input id="sb_fiT" type="number" min="0" step="1"></td><td><input id="sb_fiH" type="number" min="0" step="1"></td></tr>
+        <tr><td>Falz</td><td>außen</td><td><input id="sb_faT" type="number" min="0" step="1"></td><td><input id="sb_faH" type="number" min="0" step="1"></td></tr>
+        <tr><td>Nut</td><td>innen</td><td><input id="sb_niT" type="number" min="0" step="1"></td><td><input id="sb_niH" type="number" min="0" step="1"></td></tr>
+        <tr><td>Nut</td><td>außen</td><td><input id="sb_naT" type="number" min="0" step="1"></td><td><input id="sb_naH" type="number" min="0" step="1"></td></tr>
+      </tbody>
+    </table>
   </div>
 
   <details class="einstellungen" id="profildetails">
@@ -763,6 +780,12 @@ function eingabenLesen() {
     obAussenTon: $('obAussenTyp').value === 'lasur' ? $('obAussenTonSel').value : $('obAussenTon').value.trim(),
     regenFarbe: $('regenFarbe').value,
     regenLaenge: +$('regenLaenge').value || 0,
+    solbank: {
+      fiT: $('sb_fiT').value, fiH: $('sb_fiH').value,
+      faT: $('sb_faT').value, faH: $('sb_faH').value,
+      niT: $('sb_niT').value, niH: $('sb_niH').value,
+      naT: $('sb_naT').value, naH: $('sb_naH').value
+    },
     profil: profilLesen()
   };
 }
@@ -1328,12 +1351,46 @@ function prodSheetHTML(r) {
         : 'Holz, 45°, aus Kantel') + '</span></div>' +
     '</div>';
 
+  // Solbank – Falz & Nut (immer drucken, leer = handschriftlich ausfüllen)
+  const sb = i.solbank || {};
+  const sbZelle = v => '<td class="num sb-wert">' + (v ? fmtMM(+v) : '') + '</td>';
+  h += '<div class="ps-solbank">' +
+    '<div style="flex:1;min-width:240px"><h4 style="margin-top:0">Solbank – Falz &amp; Nut [mm]</h4>' +
+    '<div class="tblwrap"><table>' +
+    '<thead><tr><th></th><th></th><th class="num">Tiefe</th><th class="num">Höhe</th></tr></thead><tbody>' +
+    '<tr><td>Falz</td><td>innen</td>' + sbZelle(sb.fiT) + sbZelle(sb.fiH) + '</tr>' +
+    '<tr><td>Falz</td><td>außen</td>' + sbZelle(sb.faT) + sbZelle(sb.faH) + '</tr>' +
+    '<tr><td>Nut</td><td>innen</td>' + sbZelle(sb.niT) + sbZelle(sb.niH) + '</tr>' +
+    '<tr><td>Nut</td><td>außen</td>' + sbZelle(sb.naT) + sbZelle(sb.naH) + '</tr>' +
+    '</tbody></table></div></div>' +
+    '<div class="ps-sb-skizze">' + solbankSkizze() + '</div>' +
+    '</div>';
+
   // Bemerkung
   h += '<div class="ps-fuss"><b style="font-size:.68rem;text-transform:uppercase;color:#666">Bemerkung</b>' +
     '<div class="bemerkung">' + (i.bemerkung || '&nbsp;') + '</div></div>';
 
   h += '</article>';
   return h;
+}
+
+/* Profilskizze für den Solbankbereich: T = Tiefe (waagerecht), H = Höhe (senkrecht) */
+function solbankSkizze() {
+  return '<svg width="160" height="130" viewBox="0 0 160 130" role="img" aria-label="Profilskizze Solbank">' +
+    '<polygon points="25,30 95,30 95,50 120,50 120,88 78,102 78,92 62,92 62,102 40,102 40,78 25,78" ' +
+      'fill="#f4ead9" stroke="#2b2b2b" stroke-width="1.5"/>' +
+    // T-Pfeil (waagerecht, oben)
+    '<line x1="25" y1="16" x2="120" y2="16" stroke="#2e7d32" stroke-width="1.4"/>' +
+    '<polygon points="25,16 31,13 31,19" fill="#2e7d32"/>' +
+    '<polygon points="120,16 114,13 114,19" fill="#2e7d32"/>' +
+    '<text x="72" y="12" text-anchor="middle" font-size="12" font-weight="700" fill="#2e7d32">T</text>' +
+    // H-Pfeil (senkrecht, rechts)
+    '<line x1="140" y1="30" x2="140" y2="102" stroke="#e07020" stroke-width="1.4"/>' +
+    '<polygon points="140,30 137,36 143,36" fill="#e07020"/>' +
+    '<polygon points="140,102 137,96 143,96" fill="#e07020"/>' +
+    '<text x="151" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="#e07020">H</text>' +
+    '<text x="72" y="122" text-anchor="middle" font-size="9" fill="#666">Profil Solbank</text>' +
+    '</svg>';
 }
 
 function produktionRendern() {
@@ -1516,6 +1573,11 @@ function positionInsFormular(i) {
   else $('obAussenTon').value = i.obAussenTon || '';
   $('regenFarbe').value = i.regenFarbe;
   $('regenLaenge').value = i.regenLaenge || '';
+  const sb = i.solbank || {};
+  $('sb_fiT').value = sb.fiT || ''; $('sb_fiH').value = sb.fiH || '';
+  $('sb_faT').value = sb.faT || ''; $('sb_faH').value = sb.faH || '';
+  $('sb_niT').value = sb.niT || ''; $('sb_niH').value = sb.niH || '';
+  $('sb_naT').value = sb.naT || ''; $('sb_naH').value = sb.naH || '';
   Object.keys(PROFIL_DEFAULTS).forEach(k => $('p_' + k).value = i.profil[k]);
   typAnpassen();
 }
