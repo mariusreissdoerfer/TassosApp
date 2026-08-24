@@ -1549,8 +1549,24 @@ function produktionRendern() {
 }
 
 /* ================= Datei speichern / öffnen ================= */
-function dateiSpeichern(name, obj) {
-  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+const DATEI_TYPEN = [{ description: 'Fensterplaner-Datei (JSON)', accept: { 'application/json': ['.json'] } }];
+
+async function dateiSpeichern(name, obj) {
+  const inhalt = JSON.stringify(obj, null, 2);
+  // Moderner "Speichern unter..."-Dialog (Chrome/Edge/Android), sonst klassischer Download
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({ suggestedName: name, types: DATEI_TYPEN });
+      const w = await handle.createWritable();
+      await w.write(inhalt);
+      await w.close();
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return; // Nutzer hat den Dialog abgebrochen
+      // sonst: Fallback auf Download
+    }
+  }
+  const blob = new Blob([inhalt], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = name;
@@ -1559,17 +1575,29 @@ function dateiSpeichern(name, obj) {
   a.remove();
   URL.revokeObjectURL(a.href);
 }
-function dateiOeffnen(cb) {
+async function dateiOeffnen(cb) {
+  const verarbeiten = text => {
+    try { cb(JSON.parse(text)); }
+    catch (e) { alert('Datei konnte nicht gelesen werden (kein gültiges Format).'); }
+  };
+  // Moderner Öffnen-Dialog, sonst klassisches Datei-Auswahlfeld
+  if (window.showOpenFilePicker) {
+    try {
+      const [handle] = await window.showOpenFilePicker({ types: DATEI_TYPEN, multiple: false });
+      verarbeiten(await (await handle.getFile()).text());
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+      // sonst: Fallback unten
+    }
+  }
   const inp = $('dateiInput');
   inp.value = '';
   inp.onchange = () => {
     const f = inp.files[0];
     if (!f) return;
     const reader = new FileReader();
-    reader.onload = () => {
-      try { cb(JSON.parse(reader.result)); }
-      catch (e) { alert('Datei konnte nicht gelesen werden (kein gültiges Format).'); }
-    };
+    reader.onload = () => verarbeiten(reader.result);
     reader.readAsText(f);
   };
   inp.click();
