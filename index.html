@@ -169,6 +169,7 @@
   .sv-griff { fill: #2b2b2b; }
   .sv-stulp { stroke: #5d4630; stroke-width: 1.4; stroke-dasharray: 5 3; }
   .sv-mass { font-size: 11px; fill: #444; }
+  .sv-lbl { font-size: 13px; font-weight: 700; fill: #2b2b2b; }
   .ausfuehrung {
     display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 4px;
   }
@@ -181,6 +182,63 @@
     color: var(--holz-dunkel);
   }
   .summe { font-weight: 700; background: var(--holz-hell); }
+  /* ---- Produktionsliste ---- */
+  .prodsheet {
+    background: #fff;
+    border: 2px solid #2b2b2b;
+    border-radius: 10px;
+    max-width: 880px;
+    margin: 0 0 22px;
+    overflow: hidden;
+    font-size: .88rem;
+  }
+  .ps-kopf {
+    display: flex;
+    align-items: stretch;
+    background: #2b2b2b;
+    color: #fff;
+    flex-wrap: wrap;
+  }
+  .ps-pos {
+    background: var(--holz);
+    font-size: 1.5rem;
+    font-weight: 800;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+  .ps-kopfdaten { display: flex; flex-wrap: wrap; gap: 2px 26px; padding: 8px 16px; align-items: center; flex: 1; }
+  .ps-kopfdaten div b { display: block; font-size: .68rem; font-weight: 600; opacity: .75; text-transform: uppercase; letter-spacing: .04em; }
+  .ps-kopfdaten div span { font-size: .95rem; font-weight: 700; }
+  .ps-stk {
+    background: var(--holz-hell);
+    color: var(--holz-dunkel);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 6px 18px; font-weight: 800; font-size: 1.4rem;
+  }
+  .ps-stk small { font-size: .65rem; font-weight: 600; text-transform: uppercase; }
+  .ps-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 14px; border-bottom: 1px solid #2b2b2b; background: #f7f2e9; }
+  .ps-chips span { border: 1px solid #2b2b2b; border-radius: 20px; padding: 2px 12px; font-size: .78rem; font-weight: 600; background: #fff; }
+  .ps-body { display: flex; flex-wrap: wrap; gap: 0; }
+  .ps-zeichnung { padding: 14px; display: flex; align-items: flex-start; justify-content: center; flex: 0 0 auto; }
+  .ps-masse { flex: 1; min-width: 280px; padding: 10px 14px; border-left: 1px solid #ccc; }
+  .prodsheet table { margin: 4px 0 10px; font-size: .8rem; }
+  .prodsheet th, .prodsheet td { border-color: #999; padding: 3px 6px; }
+  .prodsheet th { background: #eee8dc; }
+  .prodsheet h4 { margin: 8px 0 2px; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: #2b2b2b; }
+  .ps-mass-haupt td b { font-size: 1.02rem; }
+  .ps-boxen { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); border-top: 1px solid #2b2b2b; }
+  .ps-boxen > div { border-right: 1px solid #ccc; padding: 8px 12px; }
+  .ps-boxen > div:last-child { border-right: none; }
+  .ps-boxen b { display: block; font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: #666; }
+  .ps-boxen span { font-weight: 700; }
+  .ps-fuss { border-top: 1px solid #2b2b2b; padding: 8px 14px; }
+  .ps-fuss .bemerkung { min-height: 34px; border: 1px dashed #999; border-radius: 6px; padding: 6px 10px; margin-top: 4px; font-weight: 600; }
+  .ps-warn { color: var(--rot); font-weight: 700; font-size: .82rem; padding: 4px 14px 0; }
+  @media (max-width: 640px) {
+    .ps-masse { border-left: none; border-top: 1px solid #ccc; }
+  }
   @media (max-width: 640px) {
     body { padding: 6px; }
     .panel { padding: 12px 10px; }
@@ -195,8 +253,12 @@
   @media print {
     body { background: #fff; padding: 0; }
     .nur-bildschirm, header p, .btnrow, details.einstellungen, nav.tabs { display: none !important; }
-    .panel { border: none; padding: 8px 0; display: block !important; }
+    .panel { border: none; padding: 8px 0; }
     header { background: none; color: #000; padding: 0 0 8px; border-bottom: 2px solid #000; border-radius: 0; }
+    .prodsheet { page-break-after: always; page-break-inside: avoid; max-width: none; border-radius: 0; margin: 0; }
+    .prodsheet:last-child { page-break-after: auto; }
+    .ps-kopf, .ps-pos { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    #tab-produktion h2 { display: none; }
   }
 </style>
 </head>
@@ -209,7 +271,8 @@
 </header>
 <nav class="tabs nur-bildschirm">
   <button data-tab="erfassen" class="aktiv">Erfassen</button>
-  <button data-tab="projekt">Projekt &amp; Bestelllisten</button>
+  <button data-tab="produktion">Produktionslisten</button>
+  <button data-tab="projekt">Positionen &amp; Bestellliste</button>
   <button data-tab="stamm">Preise &amp; Stammdaten</button>
 </nav>
 
@@ -243,6 +306,10 @@
     <div>
       <label for="pos">Position / Bezeichnung</label>
       <input id="pos" type="text" placeholder="z. B. Pos. 1" value="Pos. 1">
+    </div>
+    <div>
+      <label for="bemerkung">Bemerkung</label>
+      <input id="bemerkung" type="text" placeholder="z. B. alte Fenster entsorgen">
     </div>
   </div>
 
@@ -379,8 +446,9 @@
       </select>
     </div>
     <div>
-      <label for="obInnenTon">Innen – Farbton</label>
-      <input id="obInnenTon" type="text" list="tonliste" placeholder="z. B. Eiche hell / RAL 9016">
+      <label for="obInnenTonSel">Innen – Farbton</label>
+      <select id="obInnenTonSel"></select>
+      <input id="obInnenTon" type="text" list="ralliste" placeholder="z. B. RAL 9016" style="display:none">
     </div>
     <div>
       <label for="obAussenTyp">Außen – Beschichtung</label>
@@ -390,14 +458,15 @@
       </select>
     </div>
     <div>
-      <label for="obAussenTon">Außen – Farbton</label>
-      <input id="obAussenTon" type="text" list="tonliste" placeholder="z. B. Nussbaum / RAL 7016">
+      <label for="obAussenTonSel">Außen – Farbton</label>
+      <select id="obAussenTonSel"></select>
+      <input id="obAussenTon" type="text" list="ralliste" placeholder="z. B. RAL 7016" style="display:none">
     </div>
-    <datalist id="tonliste">
-      <option>Farblos</option><option>Kiefer</option><option>Eiche hell</option>
-      <option>Eiche rustikal</option><option>Teak</option><option>Nussbaum</option>
-      <option>Mahagoni</option><option>Palisander</option><option>RAL 9016</option>
-      <option>RAL 7016</option><option>RAL 6009</option><option>RAL 3011</option>
+    <datalist id="ralliste">
+      <option>RAL 9016 Verkehrsweiß</option><option>RAL 9010 Reinweiß</option>
+      <option>RAL 7016 Anthrazitgrau</option><option>RAL 7035 Lichtgrau</option>
+      <option>RAL 6009 Tannengrün</option><option>RAL 3011 Braunrot</option>
+      <option>RAL 8017 Schokoladenbraun</option><option>RAL 5011 Stahlblau</option>
     </datalist>
   </div>
 
@@ -450,6 +519,15 @@
 
   <h2 style="margin-top:20px">Ergebnis</h2>
   <div id="ergebnisInhalt"><p class="leer">Maße eingeben und auf „Berechnen“ klicken.</p></div>
+</section>
+
+<!-- ================= TAB: PRODUKTION ================= -->
+<section class="panel" id="tab-produktion" style="display:none">
+  <h2>Produktionslisten</h2>
+  <div id="produktionInhalt"><p class="leer">Noch keine Positionen erfasst.</p></div>
+  <div class="btnrow nur-bildschirm">
+    <button id="btnDruckenProd" class="sekundaer">🖨 Produktionslisten drucken</button>
+  </div>
 </section>
 
 <!-- ================= TAB: PROJEKT ================= -->
@@ -537,6 +615,25 @@ const RC = {
   rc1: { label: 'RC 1 N' },
   rc2: { label: 'RC 2' }
 };
+
+/* Remmers-Lasurtöne (Fensterlasur / HK-Lasur mit RC-Farbcodes, ergänzt um Induline-Töne) */
+const REMMERS_TOENE = [
+  'Farblos',
+  'Pinie/Lärche (RC-260)',
+  'Kiefer (RC-270)',
+  'Eiche rustikal (RC-360)',
+  'Eiche hell (RC-365)',
+  'Teak (RC-545)',
+  'Kastanie (RC-555)',
+  'Mahagoni (RC-565)',
+  'Nussbaum (RC-660)',
+  'Palisander (RC-720)',
+  'Ebenholz (RC-790)',
+  'Weiß (RC-990)',
+  'Afzelia (Induline)',
+  'Afrormosia (Induline)',
+  'Wenge (Induline)'
+];
 
 const PROFIL_DEFAULTS = {
   rahmenB: 80, fluegelB: 80, pfostenB: 98,
@@ -640,6 +737,7 @@ function eingabenLesen() {
     kommission: $('kommission').value.trim(),
     etage: $('etage').value,
     raum: $('raum').value.trim(),
+    bemerkung: $('bemerkung').value.trim(),
     pos: $('pos').value.trim() || 'Position',
     system: $('system').value,
     typ: $('typ').value,
@@ -660,9 +758,9 @@ function eingabenLesen() {
     glasExtra: $('glasExtra').value.trim(),
     silikon: $('silikon').value,
     obInnenTyp: $('obInnenTyp').value,
-    obInnenTon: $('obInnenTon').value.trim(),
+    obInnenTon: $('obInnenTyp').value === 'lasur' ? $('obInnenTonSel').value : $('obInnenTon').value.trim(),
     obAussenTyp: $('obAussenTyp').value,
-    obAussenTon: $('obAussenTon').value.trim(),
+    obAussenTon: $('obAussenTyp').value === 'lasur' ? $('obAussenTonSel').value : $('obAussenTon').value.trim(),
     regenFarbe: $('regenFarbe').value,
     regenLaenge: +$('regenLaenge').value || 0,
     profil: profilLesen()
@@ -928,10 +1026,22 @@ function berechne(i) {
 }
 
 /* ================= Fensterzeichnung (SVG, Ansicht von innen) ================= */
-function fensterSVG(r) {
+/* Flügelcode wie auf dem Werkstattblatt: DKR/DKL, DR/DL, K, F */
+function flCode(art, band) {
+  if (art === 'kipp') return 'K';
+  const s = band === 'L' ? 'L' : 'R';
+  return (art === 'dk' ? 'DK' : 'D') + s;
+}
+function baenderFuer(i) {
+  if (i.teilung === '1') return [i.din === 'DIN links' ? 'L' : 'R'];
+  return ['L', 'R'];
+}
+
+function fensterSVG(r, opt) {
+  opt = opt || {};
   const i = r.inp, p = i.profil;
   const W = r.ram.b, H = r.ram.h;
-  const maxPx = 300, rand = 34;
+  const maxPx = opt.maxPx || 300, rand = 34;
   const sc = maxPx / Math.max(W, H);
   const w = W * sc, h = H * sc;
   const fb = Math.max(4, p.rahmenB * sc);
@@ -959,12 +1069,21 @@ function fensterSVG(r) {
       L(x + wi, y + hi, x + wi / 2, y, 'sv-sym');
     }
   };
+  let flNr = 0;
   const fluegelZeichnen = (x, y, wi, hi, art, band) => {
     R(x, y, wi, hi, 'sv-fluegel');
     R(x + flb, y + flb, wi - 2 * flb, hi - 2 * flb, 'sv-glas');
     symbole(x + flb, y + flb, wi - 2 * flb, hi - 2 * flb, art, band);
     const gx = band === 'L' ? x + wi - flb / 2 : x + flb / 2;
     el.push('<circle cx="' + gx.toFixed(1) + '" cy="' + (y + hi / 2).toFixed(1) + '" r="3" class="sv-griff"/>');
+    flNr++;
+    if (opt.labels) {
+      el.push('<text x="' + (x + wi / 2).toFixed(1) + '" y="' + (y + hi / 2 - 4).toFixed(1) + '" text-anchor="middle" class="sv-lbl">FL' + flNr + '</text>');
+      el.push('<text x="' + (x + wi / 2).toFixed(1) + '" y="' + (y + hi / 2 + 12).toFixed(1) + '" text-anchor="middle" class="sv-lbl">' + flCode(art, band) + '</text>');
+    }
+  };
+  const festLabel = (x, y, wi, hi) => {
+    if (opt.labels) el.push('<text x="' + (x + wi / 2).toFixed(1) + '" y="' + (y + hi / 2 + 4).toFixed(1) + '" text-anchor="middle" class="sv-lbl">F</text>');
   };
 
   R(0, 0, w, h, 'sv-rahmen');
@@ -974,11 +1093,11 @@ function fensterSVG(r) {
   if (i.art === 'fest') {
     if (i.teilung === 'pfosten') {
       const feldW = (ow - pfb) / 2;
-      R(ox, oy, feldW, oh, 'sv-glas');
+      R(ox, oy, feldW, oh, 'sv-glas'); festLabel(ox, oy, feldW, oh);
       R(ox + feldW, oy, pfb, oh, 'sv-pfosten');
-      R(ox + feldW + pfb, oy, feldW, oh, 'sv-glas');
+      R(ox + feldW + pfb, oy, feldW, oh, 'sv-glas'); festLabel(ox + feldW + pfb, oy, feldW, oh);
     } else {
-      R(ox, oy, ow, oh, 'sv-glas');
+      R(ox, oy, ow, oh, 'sv-glas'); festLabel(ox, oy, ow, oh);
     }
   } else if (i.teilung === '1') {
     fluegelZeichnen(ox, oy, ow, oh, i.art, bandVon(i.din));
@@ -1000,9 +1119,11 @@ function fensterSVG(r) {
   L(mX, 0, mX, h, 'sv-sym'); L(mX - 4, 0, mX + 4, 0, 'sv-sym'); L(mX - 4, h, mX + 4, h, 'sv-sym');
   el.push('<text x="' + (mX + 6) + '" y="' + (h / 2).toFixed(1) + '" class="sv-mass" transform="rotate(90 ' + (mX + 6) + ' ' + (h / 2).toFixed(1) + ')" text-anchor="middle">' + fmtMM(H) + '</text>');
 
+  const caption = opt.labels
+    ? 'Ansicht von innen'
+    : i.pos + ' – Ansicht von innen, ' + artText(i) + (r.fluegel.length && i.teilung === '1' ? ', ' + i.din : '');
   return '<figure><svg viewBox="-4 -4 ' + (w + rand + 4) + ' ' + (h + rand + 4) + '" width="' + Math.round(w + rand) + '" role="img" aria-label="Fensteransicht">' +
-    el.join('') + '</svg><figcaption>' + i.pos + ' – Ansicht von innen, ' + artText(i) +
-    (r.fluegel.length && i.teilung === '1' ? ', ' + i.din : '') + '</figcaption></figure>';
+    el.join('') + '</svg><figcaption>' + caption + '</figcaption></figure>';
 }
 
 /* ================= Darstellung ================= */
@@ -1126,6 +1247,109 @@ function ergebnisHTML(r) {
   }
 
   return h;
+}
+
+/* ================= Produktionslisten ================= */
+function prodSheetHTML(r) {
+  const i = r.inp;
+  const baender = baenderFuer(i);
+  const datum = new Date().toLocaleDateString('de-DE');
+
+  let h = '<article class="prodsheet">';
+
+  // Kopf
+  h += '<div class="ps-kopf">' +
+    '<div class="ps-pos">' + i.pos + '</div>' +
+    '<div class="ps-kopfdaten">' +
+    '<div><b>Kommission</b><span>' + (i.kommission || '–') + '</span></div>' +
+    '<div><b>Lage</b><span>' + lageText(i) + '</span></div>' +
+    '<div><b>Holzart</b><span>' + r.holz.label + '</span></div>' +
+    '<div><b>Datum</b><span>' + datum + '</span></div>' +
+    '</div>' +
+    '<div class="ps-stk">' + i.stueck + '<small>Stück</small></div>' +
+    '</div>';
+
+  // Ausführungs-Chips
+  h += '<div class="ps-chips">' +
+    '<span>' + r.sys.name + '</span>' +
+    '<span>' + r.typ.label + ' · ' + r.typ.schraege + '° Aufdeckschräge</span>' +
+    '<span>' + artText(i) + '</span>' +
+    (r.fluegel.length && i.teilung === '1' ? '<span>' + i.din + '</span>' : '') +
+    (i.rc !== 'std' ? '<span>Sicherheit ' + RC[i.rc].label + '</span>' : '') +
+    '<span>' + r.typ.wetterschutz + '</span>' +
+    '</div>';
+
+  r.warnungen.forEach(w => h += '<div class="ps-warn">⚠ ' + w + '</div>');
+
+  // Zeichnung + Maße
+  h += '<div class="ps-body">';
+  h += '<div class="ps-zeichnung">' + fensterSVG(r, { maxPx: 280, labels: true }) + '</div>';
+  h += '<div class="ps-masse">';
+
+  h += '<h4>Maße [mm]</h4>';
+  const mz = [];
+  mz.push('<tr class="ps-mass-haupt"><td>BL</td><td>Blendrahmen</td><td class="num"><b>' + fmtMM(r.ram.b) + ' × ' + fmtMM(r.ram.h) + '</b></td><td class="num">–</td></tr>');
+  r.fluegel.forEach((f, idx) => {
+    mz.push('<tr class="ps-mass-haupt"><td>FL' + (idx + 1) + '</td><td>' + flCode(f.art, baender[idx]) +
+      '</td><td class="num"><b>' + fmtMM(f.famB) + ' × ' + fmtMM(f.famH) + '</b></td>' +
+      '<td class="num">' + fmtMM(f.ffb) + ' × ' + fmtMM(f.ffh) + '</td></tr>');
+  });
+  if (r.pfostenLaenge) mz.push('<tr><td>PF</td><td>Pfosten</td><td class="num"><b>' + fmtMM(r.pfostenLaenge) + '</b></td><td class="num">–</td></tr>');
+  h += tabelle([{ t: '' }, { t: 'Teil' }, { t: 'Außenmaß', num: 1 }, { t: 'Falzmaß', num: 1 }], mz);
+
+  h += '<h4>Glasmaße [mm]</h4>';
+  const gz = r.felder.map((f, idx) => {
+    const kurz = r.glas.label.split(' – ')[0].replace('2-fach ', '').replace('3-fach ', '') + ' ' + (r.glas.label.includes('3-fach') ? '3-f.' : 'SZR');
+    const extras = [];
+    if (i.glasTyp === 'ornament') extras.push(i.ornament);
+    if (i.vsg) extras.push('VSG');
+    extras.push('RV ' + i.randverbund);
+    if (i.glasExtra) extras.push(i.glasExtra);
+    return '<tr><td>' + (r.fluegel.length ? 'FL' + (idx + 1) : f.name) + '</td>' +
+      '<td class="num"><b>' + fmtMM(f.glasB) + ' × ' + fmtMM(f.glasH) + '</b></td>' +
+      '<td>' + kurz + '</td><td>' + extras.join(', ') + '</td></tr>';
+  });
+  h += tabelle([{ t: 'Feld' }, { t: 'Bestellmaß', num: 1 }, { t: 'Aufbau' }, { t: 'Ausführung' }], gz);
+
+  h += '<h4>Kanteln (bestellt)</h4><p style="margin:2px 0 8px">' +
+    r.holzBestell.map(e => e.stueck + '× ' + fmtMM(e.laenge)).join(', ') +
+    ' mm &nbsp;<span style="color:#666">(' + r.sys.rahmen.rohB + ' × ' + r.sys.rahmen.rohT + ' roh)</span></p>';
+
+  h += '<h4>Beschlag (Siegenia, ' + RC[i.rc].label + ')</h4><p style="margin:2px 0 4px">' +
+    (r.beschlag.length ? r.beschlag.map(b => b.anzahl + '× ' + BESCHLAG_LABEL[b.key]).join(' · ') : 'ohne (Festverglasung)') + '</p>';
+
+  h += '</div></div>'; // ps-masse, ps-body
+
+  // Boxen: Oberfläche / Silikon / Wetterschutz
+  h += '<div class="ps-boxen">' +
+    '<div><b>Farbe innen</b><span>' + obText(i.obInnenTyp, i.obInnenTon) + '</span></div>' +
+    '<div><b>Farbe außen</b><span>' + obText(i.obAussenTyp, i.obAussenTon) + '</span></div>' +
+    '<div><b>Silikon</b><span>Otto Seal S 110 – ' + i.silikon + '</span></div>' +
+    '<div><b>' + (i.typ === 'standard' ? 'Regenschutzschiene' : 'Wetterschenkel') + '</b><span>' +
+      (i.typ === 'standard'
+        ? r.regenschienen.map(x => fmtMM(x.laenge) + ' mm').join(', ') + ' – ' + i.regenFarbe
+        : 'Holz, 45°, aus Kantel') + '</span></div>' +
+    '</div>';
+
+  // Bemerkung
+  h += '<div class="ps-fuss"><b style="font-size:.68rem;text-transform:uppercase;color:#666">Bemerkung</b>' +
+    '<div class="bemerkung">' + (i.bemerkung || '&nbsp;') + '</div></div>';
+
+  h += '</article>';
+  return h;
+}
+
+function produktionRendern() {
+  const list = positionenLaden();
+  const wrap = $('produktionInhalt');
+  if (!list.length) {
+    wrap.innerHTML = '<p class="leer">Noch keine Positionen erfasst – im Tab „Erfassen“ Fenster zur Positionsliste hinzufügen.</p>';
+    return;
+  }
+  wrap.innerHTML = list.map(pIn => {
+    const r = berechne(pIn);
+    return r.fehler ? '' : prodSheetHTML(r);
+  }).join('');
 }
 
 /* ================= Positionsliste & Bestelllisten ================= */
@@ -1266,6 +1490,7 @@ function positionInsFormular(i) {
   $('kommission').value = i.kommission || '';
   $('etage').value = i.etage || '';
   $('raum').value = i.raum || '';
+  $('bemerkung').value = i.bemerkung || '';
   $('pos').value = i.pos;
   $('system').value = i.system; glasOptionenFuellen();
   $('typ').value = i.typ;
@@ -1286,9 +1511,12 @@ function positionInsFormular(i) {
   $('glasExtra').value = i.glasExtra || '';
   $('silikon').value = i.silikon;
   $('obInnenTyp').value = i.obInnenTyp;
-  $('obInnenTon').value = i.obInnenTon || '';
   $('obAussenTyp').value = i.obAussenTyp;
-  $('obAussenTon').value = i.obAussenTon || '';
+  obFelderAnpassen();
+  if (i.obInnenTyp === 'lasur') { if (REMMERS_TOENE.includes(i.obInnenTon)) $('obInnenTonSel').value = i.obInnenTon; }
+  else $('obInnenTon').value = i.obInnenTon || '';
+  if (i.obAussenTyp === 'lasur') { if (REMMERS_TOENE.includes(i.obAussenTon)) $('obAussenTonSel').value = i.obAussenTon; }
+  else $('obAussenTon').value = i.obAussenTon || '';
   $('regenFarbe').value = i.regenFarbe;
   $('regenLaenge').value = i.regenLaenge || '';
   Object.keys(PROFIL_DEFAULTS).forEach(k => $('p_' + k).value = i.profil[k]);
@@ -1341,12 +1569,25 @@ function typAnpassen() {
 function ornamentZeigen() {
   $('ornamentFeld').style.display = $('glasTyp').value === 'ornament' ? '' : 'none';
 }
+function obFelderAnpassen() {
+  [['obInnenTyp', 'obInnenTonSel', 'obInnenTon'], ['obAussenTyp', 'obAussenTonSel', 'obAussenTon']].forEach(([t, sel, inp]) => {
+    const lasur = $(t).value === 'lasur';
+    $(sel).style.display = lasur ? '' : 'none';
+    $(inp).style.display = lasur ? 'none' : '';
+  });
+}
+function tonSelectsFuellen() {
+  const opts = REMMERS_TOENE.map(t => '<option>' + t + '</option>').join('');
+  $('obInnenTonSel').innerHTML = opts;
+  $('obAussenTonSel').innerHTML = opts;
+}
 function tabZeigen(name) {
-  ['erfassen', 'projekt', 'stamm'].forEach(t => {
+  ['erfassen', 'produktion', 'projekt', 'stamm'].forEach(t => {
     $('tab-' + t).style.display = t === name ? '' : 'none';
   });
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('aktiv', b.dataset.tab === name));
   if (name === 'projekt') positionenRendern();
+  if (name === 'produktion') produktionRendern();
 }
 function rechnenUndZeigen() {
   const r = berechne(eingabenLesen());
@@ -1375,12 +1616,17 @@ $('btnLeeren').addEventListener('click', () => {
   if (confirm('Alle Positionen wirklich löschen?')) { positionenSpeichern([]); positionenRendern(); }
 });
 $('btnDrucken').addEventListener('click', () => window.print());
+$('btnDruckenProd').addEventListener('click', () => window.print());
+$('obInnenTyp').addEventListener('change', obFelderAnpassen);
+$('obAussenTyp').addEventListener('change', obFelderAnpassen);
 ['breite', 'hoehe', 'stueck'].forEach(id =>
   $(id).addEventListener('keydown', e => { if (e.key === 'Enter') rechnenUndZeigen(); }));
 
 /* Init */
 glasOptionenFuellen();
 profilFelderSetzen();
+tonSelectsFuellen();
+obFelderAnpassen();
 teilungAnpassen();
 typAnpassen();
 ornamentZeigen();

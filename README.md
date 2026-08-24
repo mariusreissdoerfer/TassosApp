@@ -23,7 +23,12 @@ Systemen **IV 68** und **IV 78** – inklusive Bestelllisten und Kalkulation.
 - **Glas**: Klar- oder Ornamentglas, VSG, Randverbundfarbe, Besonderheiten,
   Silikonfarbe (Otto Seal S 110)
 - **Oberfläche**: innen und außen getrennt – RAL-Farbe deckend oder
-  Remmers-Lasur mit Farbton
+  Remmers-Lasur mit echten Farbtönen (Fensterlasur/HK-Lasur RC-Codes,
+  Induline-Töne)
+- **Produktionslisten**: je Position ein kompaktes Werkstattblatt mit
+  eigener Fensteransicht (FL-Nummern und Öffnungscodes DKL/DKR/K/F),
+  Blendrahmen-/Flügel-/Falzmaßen, Glasmaßen, Kanteln, Beschlag, Farben
+  und Bemerkung – druckbar mit einer Seite pro Position
 - **Beschlag Siegenia TITAN AF** mit FFB/FFH-Richtgrößen; Artikelnummern
   und Preise werden in der Stammdatenmaske hinterlegt
 - **Holz-Bestellliste**: Kantellängen auf volle 100 mm aufgerundet
