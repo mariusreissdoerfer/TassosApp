@@ -1315,9 +1315,6 @@ function prodSheetHTML(r) {
     r.holzBestell.map(e => e.stueck + '× ' + fmtMM(e.laenge)).join(', ') +
     ' mm &nbsp;<span style="color:#666">(' + r.sys.rahmen.rohB + ' × ' + r.sys.rahmen.rohT + ' roh)</span></p>';
 
-  h += '<h4>Beschlag (Siegenia, ' + RC[i.rc].label + ')</h4><p style="margin:2px 0 4px">' +
-    (r.beschlag.length ? r.beschlag.map(b => b.anzahl + '× ' + BESCHLAG_LABEL[b.key]).join(' · ') : 'ohne (Festverglasung)') + '</p>';
-
   h += '</div></div>'; // ps-masse, ps-body
 
   // Boxen: Oberfläche / Silikon / Wetterschutz
