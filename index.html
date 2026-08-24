@@ -289,6 +289,7 @@
   <button data-tab="erfassen" class="aktiv">Erfassen</button>
   <button data-tab="produktion">Produktionslisten</button>
   <button data-tab="projekt">Positionen &amp; Bestellliste</button>
+  <button data-tab="kalkulation">Kalkulation</button>
   <button data-tab="stamm">Preise &amp; Stammdaten</button>
 </nav>
 
@@ -580,6 +581,15 @@
     aus dem aktuellen Siegenia-Katalog eintragen, dann erscheinen sie automatisch in den Bestelllisten.
     Kantellängen werden auf volle 100&nbsp;mm aufgerundet (Lieferlängen 800–3500&nbsp;mm).
   </p>
+</section>
+
+<!-- ================= TAB: KALKULATION ================= -->
+<section class="panel" id="tab-kalkulation" style="display:none">
+  <h2>Kalkulation</h2>
+  <div id="kalkulationInhalt"><p class="leer">Noch keine Positionen erfasst.</p></div>
+  <div class="btnrow nur-bildschirm">
+    <button id="btnDruckenKalk" class="sekundaer">🖨 Kalkulation drucken</button>
+  </div>
 </section>
 
 <!-- ================= TAB: STAMMDATEN ================= -->
@@ -1434,6 +1444,80 @@ function produktionRendern() {
   }).join('');
 }
 
+/* ================= Kalkulation ================= */
+function kalkulationRendern() {
+  const list = positionenLaden();
+  const wrap = $('kalkulationInhalt');
+  if (!list.length) {
+    wrap.innerHTML = '<p class="leer">Noch keine Positionen erfasst – im Tab „Erfassen“ Fenster zur Positionsliste hinzufügen.</p>';
+    return;
+  }
+
+  const ergebnisse = list.map(pIn => ({ pIn, r: berechne(pIn) })).filter(e => !e.r.fehler);
+  const preiseDa = ergebnisse.some(e => e.r.kalk.zeilen.length);
+
+  let h = '';
+  if (!preiseDa) {
+    h += '<div class="hinweis" style="margin:0 0 12px">Noch keine Preise hinterlegt – unter „Preise &amp; Stammdaten“ ' +
+      'Materialpreise, Beschlagpreise und Aufschlag eintragen, dann rechnet die Kalkulation automatisch.</div>';
+  }
+
+  /* ---- Übersicht ---- */
+  h += '<h3 style="margin-top:0">Übersicht</h3>';
+  let matSumme = 0, richtSumme = 0, fensterSumme = 0;
+  const uz = ergebnisse.map(({ pIn, r }) => {
+    const s = pIn.stueck;
+    fensterSumme += s;
+    matSumme += r.kalk.summe * s;
+    richtSumme += r.kalk.richtpreis * s;
+    return '<tr><td>' + pIn.pos + '<span class="sub">' + (pIn.kommission || '') + (lageText(pIn) !== '–' ? ' · ' + lageText(pIn) : '') + '</span></td>' +
+      '<td>' + r.sys.name + ' · ' + artText(pIn) + '</td>' +
+      '<td class="num">' + fmtMM(r.ram.b) + ' × ' + fmtMM(r.ram.h) + '</td>' +
+      '<td class="num">' + s + '</td>' +
+      '<td class="num">' + (r.kalk.summe ? fmtEur(r.kalk.summe) : '–') + '</td>' +
+      '<td class="num">' + (r.kalk.summe ? fmtEur(r.kalk.summe * s) : '–') + '</td>' +
+      '<td class="num"><b>' + (r.kalk.summe ? fmtEur(r.kalk.richtpreis * s) : '–') + '</b></td></tr>';
+  });
+  uz.push('<tr class="summe"><td colspan="3">Projekt gesamt</td><td class="num">' + fensterSumme + '</td>' +
+    '<td class="num"></td><td class="num">' + (matSumme ? fmtEur(matSumme) : '–') + '</td>' +
+    '<td class="num">' + (richtSumme ? fmtEur(richtSumme) : '–') + '</td></tr>');
+  h += tabelle(
+    [{ t: 'Position' }, { t: 'Ausführung' }, { t: 'Maß [mm]', num: 1 }, { t: 'Stück', num: 1 },
+     { t: 'Material/Stk', num: 1 }, { t: 'Material ges.', num: 1 }, { t: 'Richtpreis ges.', num: 1 }],
+    uz
+  );
+  if (stamm.zuschlag > 0 && matSumme) {
+    h += '<p class="hinweis" style="margin:0 0 8px">Richtpreis = Materialkosten + ' + fmt(stamm.zuschlag, 0) +
+      ' % Aufschlag (einstellbar unter „Preise &amp; Stammdaten“). Arbeitszeit/Montage sind nicht enthalten.</p>';
+  }
+
+  /* ---- Details je Position ---- */
+  h += '<h3>Details je Position</h3>';
+  ergebnisse.forEach(({ pIn, r }) => {
+    const s = pIn.stueck;
+    h += '<h4 style="font-size:.9rem;margin:14px 0 2px">' + pIn.pos +
+      (pIn.kommission ? ' – ' + pIn.kommission : '') +
+      (lageText(pIn) !== '–' ? ' (' + lageText(pIn) + ')' : '') +
+      ' · ' + s + ' Stück</h4>';
+    if (!r.kalk.zeilen.length) {
+      h += '<p class="leer">Keine Preise für diese Position hinterlegt.</p>';
+      return;
+    }
+    const dz = r.kalk.zeilen.map(k =>
+      '<tr><td>' + k.label + '</td><td class="num">' + fmtEur(k.betrag) + '</td>' +
+      '<td class="num">' + fmtEur(k.betrag * s) + '</td></tr>');
+    dz.push('<tr class="summe"><td>Materialkosten</td><td class="num">' + fmtEur(r.kalk.summe) +
+      '</td><td class="num">' + fmtEur(r.kalk.summe * s) + '</td></tr>');
+    if (stamm.zuschlag > 0) {
+      dz.push('<tr class="summe"><td>Richtpreis inkl. ' + fmt(stamm.zuschlag, 0) + ' % Aufschlag</td>' +
+        '<td class="num">' + fmtEur(r.kalk.richtpreis) + '</td><td class="num"><b>' + fmtEur(r.kalk.richtpreis * s) + '</b></td></tr>');
+    }
+    h += tabelle([{ t: 'Position' }, { t: 'je Fenster', num: 1 }, { t: '× ' + s + ' gesamt', num: 1 }], dz);
+  });
+
+  wrap.innerHTML = h;
+}
+
 /* ================= Positionsliste & Bestelllisten ================= */
 function positionenRendern() {
   const list = positionenLaden();
@@ -1542,10 +1626,9 @@ function positionenRendern() {
   g += tabelle([{ t: 'Material' }, { t: 'Menge', num: 1 }, { t: 'Hinweis' }], sz);
 
   if (kalkGesamt > 0) {
-    g += '<h3>Kalkulation gesamt</h3>';
-    const kz = ['<tr><td>Materialkosten alle Positionen</td><td class="num">' + fmtEur(kalkGesamt) + '</td></tr>'];
-    if (stamm.zuschlag > 0) kz.push('<tr class="summe"><td>Richtpreis inkl. ' + fmt(stamm.zuschlag, 0) + ' % Aufschlag</td><td class="num">' + fmtEur(richtGesamt) + '</td></tr>');
-    g += tabelle([{ t: '' }, { t: 'Betrag', num: 1 }], kz);
+    g += '<p class="hinweis nur-bildschirm" style="margin-top:8px">Materialkosten gesamt: <b>' + fmtEur(kalkGesamt) + '</b>' +
+      (stamm.zuschlag > 0 ? ' · Richtpreis: <b>' + fmtEur(richtGesamt) + '</b>' : '') +
+      ' – Details mit Aufschlüsselung je Position im Tab <b>„Kalkulation“</b>.</p>';
   }
 
   best.innerHTML = g;
@@ -1670,12 +1753,13 @@ function tonSelectsFuellen() {
   $('obAussenTonSel').innerHTML = opts;
 }
 function tabZeigen(name) {
-  ['erfassen', 'produktion', 'projekt', 'stamm'].forEach(t => {
+  ['erfassen', 'produktion', 'projekt', 'kalkulation', 'stamm'].forEach(t => {
     $('tab-' + t).style.display = t === name ? '' : 'none';
   });
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('aktiv', b.dataset.tab === name));
   if (name === 'projekt') positionenRendern();
   if (name === 'produktion') produktionRendern();
+  if (name === 'kalkulation') kalkulationRendern();
 }
 function rechnenUndZeigen() {
   const r = berechne(eingabenLesen());
@@ -1705,6 +1789,7 @@ $('btnLeeren').addEventListener('click', () => {
 });
 $('btnDrucken').addEventListener('click', () => window.print());
 $('btnDruckenProd').addEventListener('click', () => window.print());
+$('btnDruckenKalk').addEventListener('click', () => window.print());
 $('obInnenTyp').addEventListener('change', obFelderAnpassen);
 $('obAussenTyp').addEventListener('change', obFelderAnpassen);
 ['breite', 'hoehe', 'stueck'].forEach(id =>
