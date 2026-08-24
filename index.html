@@ -54,6 +54,25 @@
     cursor: pointer;
   }
   nav.tabs button.aktiv { background: var(--holz-hell); color: var(--holz-dunkel); }
+  .projektzeile {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    background: var(--holz-dunkel);
+    padding: 0 12px 12px;
+  }
+  .projektzeile .pz-label { color: #fff; font-size: .85rem; font-weight: 600; }
+  .projektzeile select {
+    flex: 1 1 160px;
+    max-width: 340px;
+    width: auto;
+    padding: 7px 8px;
+    border-radius: 8px;
+    font-size: .9rem;
+    border: none;
+  }
+  .projektzeile button { padding: 7px 12px; font-size: .85rem; }
   .panel {
     background: var(--weiss);
     padding: 16px 20px;
@@ -294,6 +313,13 @@
   <button data-tab="kalkulation">Kalkulation</button>
   <button data-tab="stamm">Preise &amp; Stammdaten</button>
 </nav>
+<div class="projektzeile nur-bildschirm">
+  <span class="pz-label">Projekt:</span>
+  <select id="projektWahl"></select>
+  <button id="btnProjektNeu" class="mini">＋ Neu</button>
+  <button id="btnProjektSpeichern" class="mini sekundaer">💾 Speichern</button>
+  <button id="btnProjektOeffnen" class="mini sekundaer">📂 Öffnen</button>
+</div>
 
 <!-- ================= TAB: ERFASSEN ================= -->
 <section class="panel nur-bildschirm" id="tab-erfassen">
@@ -573,14 +599,9 @@
   <h2>Projekt</h2>
   <div class="projektbar nur-bildschirm">
     <div>
-      <label for="projektWahl">Projekt öffnen</label>
-      <select id="projektWahl"></select>
-    </div>
-    <div>
-      <label for="projektName">Projektname</label>
+      <label for="projektName">Projektname (umbenennen)</label>
       <input id="projektName" type="text" placeholder="z. B. BV Müller Neubau">
     </div>
-    <button id="btnProjektNeu">＋ Neues Projekt</button>
     <button id="btnProjektLoeschen" class="gefahr">Projekt löschen</button>
   </div>
   <h2>Positionsliste</h2>
@@ -588,8 +609,6 @@
   <div id="bestellInhalt"></div>
   <div class="btnrow nur-bildschirm">
     <button id="btnDrucken" class="sekundaer">🖨 Drucken / PDF</button>
-    <button id="btnProjektSpeichern" class="sekundaer">💾 Projekt speichern</button>
-    <button id="btnProjektOeffnen" class="sekundaer">📂 Projekt öffnen</button>
     <button id="btnLeeren" class="gefahr">Positionsliste löschen</button>
   </div>
   <p class="hinweis">
@@ -1583,8 +1602,7 @@ function geoeffneteDatei(d) {
     let name = d.name || (gueltig[0].kommission || 'Importiertes Projekt');
     while (projStore.projekte.some(p => p.name === name)) name += ' (2)';
     projektAnlegen(name, gueltig);
-    projektBarRendern();
-    positionenRendern();
+    alleAnsichtenAktualisieren();
     alert('Projekt „' + name + '“ geöffnet – ' + gueltig.length + ' Position(en). Es ist jetzt das aktive Projekt.');
   } else if (d && d.typ === 'holzfensterplaner-stammdaten' && d.stamm) {
     stamm = {
@@ -1607,12 +1625,17 @@ function projektBarRendern() {
     p.name + ' (' + (p.positionen || []).length + ' Pos.)</option>').join('');
   $('projektName').value = aktivesProjekt().name;
 }
+function alleAnsichtenAktualisieren() {
+  projektBarRendern();
+  positionenRendern();
+  produktionRendern();
+  kalkulationRendern();
+}
 function neuesProjekt() {
   const name = prompt('Name des neuen Projekts:', 'Projekt ' + (projStore.projekte.length + 1));
   if (name === null) return;
   projektAnlegen(name.trim() || 'Projekt ' + (projStore.projekte.length + 1), []);
-  projektBarRendern();
-  positionenRendern();
+  alleAnsichtenAktualisieren();
 }
 function projektLoeschen() {
   const p = aktivesProjekt();
@@ -1621,8 +1644,7 @@ function projektLoeschen() {
   if (!projStore.projekte.length) projStore.projekte.push({ id: 'p' + Date.now(), name: 'Projekt 1', positionen: [] });
   projStore.aktivId = projStore.projekte[0].id;
   projekteSpeichern();
-  projektBarRendern();
-  positionenRendern();
+  alleAnsichtenAktualisieren();
 }
 
 /* ================= Kalkulation ================= */
@@ -1979,8 +2001,7 @@ $('btnProjektLoeschen').addEventListener('click', projektLoeschen);
 $('projektWahl').addEventListener('change', () => {
   projStore.aktivId = $('projektWahl').value;
   projekteSpeichern();
-  projektBarRendern();
-  positionenRendern();
+  alleAnsichtenAktualisieren();
 });
 $('projektName').addEventListener('input', () => {
   aktivesProjekt().name = $('projektName').value.trim() || 'Projekt';
@@ -2006,6 +2027,7 @@ $('obAussenTyp').addEventListener('change', obFelderAnpassen);
   $(id).addEventListener('keydown', e => { if (e.key === 'Enter') rechnenUndZeigen(); }));
 
 /* Init */
+projektBarRendern();
 glasOptionenFuellen();
 profilFelderSetzen();
 tonSelectsFuellen();
