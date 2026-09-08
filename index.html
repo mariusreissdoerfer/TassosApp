@@ -191,6 +191,7 @@
   .sv-stulp { stroke: #5d4630; stroke-width: 1.4; stroke-dasharray: 5 3; }
   .sv-mass { font-size: 11px; fill: #444; }
   .sv-lbl { font-size: 13px; font-weight: 700; fill: #2b2b2b; }
+  .sv-rb { font-size: 8px; font-weight: 700; fill: #fff; }
   .ausfuehrung {
     display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 4px;
   }
@@ -452,6 +453,26 @@
     </div>
   </div>
 
+  <h3>Blendrahmenbreiten [mm] <span style="font-weight:400;color:#888">(je Seite individuell, Standard 80 – wird in der Produktionsliste angezeigt)</span></h3>
+  <div class="grid">
+    <div><label for="rbL">links</label><input id="rbL" type="number" min="40" max="300" step="1" value="80"></div>
+    <div><label for="rbR">rechts</label><input id="rbR" type="number" min="40" max="300" step="1" value="80"></div>
+    <div><label for="rbO">oben</label><input id="rbO" type="number" min="40" max="300" step="1" value="80"></div>
+    <div><label for="rbU">unten</label><input id="rbU" type="number" min="40" max="300" step="1" value="80"></div>
+  </div>
+
+  <h3>Dichtungen</h3>
+  <div class="grid">
+    <div>
+      <label for="dichtFalz">Flügelfalzdichtung</label>
+      <select id="dichtFalz"><option>Schwarz</option><option>Grau</option></select>
+    </div>
+    <div>
+      <label for="dichtAufdeck">Aufdeckdichtung</label>
+      <select id="dichtAufdeck"><option>Schwarz</option><option>Grau</option></select>
+    </div>
+  </div>
+
   <h3>Glas</h3>
   <div class="grid">
     <div>
@@ -551,8 +572,15 @@
   <h3>Blendrahmen unten – Solbank, Falz &amp; Nut <span style="font-weight:400;color:#888">(optional – steht immer auf der Produktionsliste, ggf. handschriftlich ausfüllen)</span></h3>
   <div class="grid" style="margin-bottom:8px">
     <div>
-      <label for="balkontuer">Balkontür (flache Schwelle)</label>
+      <label for="balkontuer">Balkontür (mit Bodenschwelle)</label>
       <input id="balkontuer" type="checkbox">
+    </div>
+    <div id="schwelleFeld" style="display:none">
+      <label for="schwelle">Bodenschwelle</label>
+      <select id="schwelle">
+        <option value="flach">Flachschwelle Alu 70 × 20 mm, 5° (barrierefrei)</option>
+        <option value="thermisch">Türschwelle Alu thermisch getrennt 83,5 × 32 mm (Deckel D8-ABS)</option>
+      </select>
     </div>
   </div>
   <div class="tblwrap">
@@ -591,9 +619,16 @@
       bei abweichenden Breiten automatisch an (je mm Mehrbreite: +2&nbsp;mm Abzug).</p>
   </details>
 
+  <div id="bearbeitenLeiste" class="hinweis" style="display:none;margin:12px 0 0;border-color:#e07020;background:#fde8c8">
+    <b>Bearbeite Position „<span id="bearbeitenName"></span>“</b> – Änderungen werden erst mit „Änderungen speichern“ übernommen.
+    <span style="display:inline-block;margin-left:8px">
+      <button id="btnBearbeitenSpeichern" class="mini">✓ Änderungen speichern</button>
+      <button id="btnBearbeitenAbbrechen" class="sekundaer mini">Abbrechen</button>
+    </span>
+  </div>
   <div class="btnrow">
     <button id="btnBerechnen">Berechnen</button>
-    <button id="btnHinzufuegen" class="sekundaer">＋ Zur Positionsliste hinzufügen</button>
+    <button id="btnHinzufuegen" class="sekundaer">＋ Als neue Position hinzufügen</button>
   </div>
 
   <h2 style="margin-top:20px">Ergebnis</h2>
@@ -745,6 +780,13 @@ const TYPEN = {
   standard: { label: 'Standard', schraege: 20, wetterschutz: 'Regenschutzschiene Alu' },
   denkmal:  { label: 'Denkmalschutz', schraege: 45, wetterschutz: 'Wetterschenkel Holz' }
 };
+
+const SCHWELLEN = {
+  flach:     { label: 'Flachschwelle Alu 70 × 20 mm, 5° (barrierefrei)', kurz: 'Flachschwelle 70 × 20', bild: 'img/schwelle-flach.png', preisKey: 'schwelle_flach' },
+  thermisch: { label: 'Türschwelle Alu thermisch getrennt 83,5 × 32 mm (Deckel D8-ABS)', kurz: 'Schwelle therm. getr. 83,5 × 32', bild: 'img/schwelle-thermisch.png', preisKey: 'schwelle_thermisch' }
+};
+const schwelleVon = i => SCHWELLEN[i.schwelle] || SCHWELLEN.flach;
+const rahmenVon = i => (i.rahmen && i.rahmen.l) ? i.rahmen : { l: i.profil.rahmenB, r: i.profil.rahmenB, o: i.profil.rahmenB, u: i.profil.rahmenB };
 
 const RC = {
   std: { label: 'Standard' },
@@ -905,7 +947,10 @@ const MATERIAL_DEF = [
   { key: 'glas_3f',      label: 'Isolierglas 3-fach', einheit: '€/m²' },
   { key: 'zu_ornament',  label: 'Zuschlag Ornamentglas', einheit: '€/m²' },
   { key: 'zu_vsg',       label: 'Zuschlag VSG', einheit: '€/m²' },
-  { key: 'dichtung',     label: 'Dichtung', einheit: '€/lfm' },
+  { key: 'dicht_falz',   label: 'Flügelfalzdichtung', einheit: '€/lfm' },
+  { key: 'dicht_aufdeck', label: 'Aufdeckdichtung', einheit: '€/lfm' },
+  { key: 'schwelle_flach', label: 'Bodenschwelle Flachschwelle 70 × 20', einheit: '€/lfm' },
+  { key: 'schwelle_thermisch', label: 'Bodenschwelle therm. getrennt 83,5 × 32', einheit: '€/lfm' },
   { key: 'silikon',      label: 'Otto Seal S 110', einheit: '€/Kartusche' },
   { key: 'lasur',        label: 'Remmers Lasur', einheit: '€/l' },
   { key: 'farbe',        label: 'RAL-Farbe deckend', einheit: '€/l' },
@@ -920,7 +965,7 @@ const STANDARD_PREISE = {
     glasleiste: 2.5,
     glas_2f: 45, glas_3f: 65,
     zu_ornament: 15, zu_vsg: 40,
-    dichtung: 1.2, silikon: 8.5,
+    dicht_falz: 1.2, dicht_aufdeck: 1.4, schwelle_flach: 18, schwelle_thermisch: 32, silikon: 8.5,
     lasur: 22, farbe: 24,
     regenschiene: 12
   },
@@ -1045,6 +1090,10 @@ function eingabenLesen() {
     regenFarbe: $('regenFarbe').value,
     regenLaenge: +$('regenLaenge').value || 0,
     balkontuer: $('balkontuer').checked,
+    schwelle: $('schwelle').value,
+    rahmen: { l: +$('rbL').value || 80, r: +$('rbR').value || 80, o: +$('rbO').value || 80, u: +$('rbU').value || 80 },
+    dichtFalz: $('dichtFalz').value,
+    dichtAufdeck: $('dichtAufdeck').value,
     solbank: {
       fiT: $('sb_fiT').value, fiH: $('sb_fiH').value,
       faT: $('sb_faT').value, faH: $('sb_faH').value,
@@ -1064,11 +1113,13 @@ function berechne(i) {
   const glas = sys.glas.find(g => g.id === i.glasId) || sys.glas[0];
   const warnungen = [];
 
-  // Anpassung der Werkstatt-Abzüge an abweichende Kantelbreiten (Basis 80/80)
-  const dR = p.rahmenB - 80, dF = p.fluegelB - 80;
-  const abzugB = p.abzugB + 2 * dR;
-  const abzugH = p.abzugH + 2 * dR;
-  const abzugStulp = p.abzugStulp + 2 * dR;
+  // Anpassung der Werkstatt-Abzüge an abweichende Kantelbreiten (Basis 80/80);
+  // Blendrahmenbreite je Seite individuell (links/rechts/oben/unten)
+  const rb = rahmenVon(i);
+  const dF = p.fluegelB - 80;
+  const abzugB = p.abzugB + (rb.l - 80) + (rb.r - 80);
+  const abzugH = p.abzugH + (rb.o - 80) + (rb.u - 80);
+  const abzugStulp = p.abzugStulp + (rb.l - 80) + (rb.r - 80);
   const glasAbzugFam = (p.glasAbzugB - p.abzugB) + 2 * dF;   // Abzug vom Flügelaußenmaß (Standard 134)
   const regenAbzugFam = p.regenAbzug - p.abzugB;             // Abzug vom Flügelaußenmaß (Standard 89)
 
@@ -1076,8 +1127,8 @@ function berechne(i) {
   const ramH = i.bezug === 'rohbau' ? i.h - 2 * p.fuge : i.h;
   if (!(ramB > 200 && ramH > 200)) return { fehler: 'Bitte plausible Maße eingeben (Rahmenaußenmaß > 200 mm).' };
 
-  const bfmB = ramB - 2 * (p.rahmenB - p.anschlag);
-  const bfmH = ramH - 2 * (p.rahmenB - p.anschlag);
+  const bfmB = ramB - (rb.l - p.anschlag) - (rb.r - p.anschlag);
+  const bfmH = ramH - (rb.o - p.anschlag) - (rb.u - p.anschlag);
 
   const fluegel = [];   // {name, art, famB, famH, ffb, ffh, glasB, glasH, gflB, gflH}
   const felder = [];    // Glasfelder inkl. Festverglasung
@@ -1107,8 +1158,8 @@ function berechne(i) {
         felder.push({ name, gflB, gflH, glasB: gflB - 2 * p.glasspiel, glasH: gflH - 2 * p.glasspiel });
       });
     } else {
-      const gflB = ramB - 2 * (p.rahmenB - p.glaseinstand);
-      const gflH = ramH - 2 * (p.rahmenB - p.glaseinstand);
+      const gflB = ramB - (rb.l - p.glaseinstand) - (rb.r - p.glaseinstand);
+      const gflH = ramH - (rb.o - p.glaseinstand) - (rb.u - p.glaseinstand);
       felder.push({ name: 'Festverglasung', gflB, gflH, glasB: gflB - 2 * p.glasspiel, glasH: gflH - 2 * p.glasspiel });
     }
   } else if (i.teilung === '1') {
@@ -1139,11 +1190,20 @@ function berechne(i) {
   if (glas.dicke > sys.maxGlas) warnungen.push('Glasdicke ' + glas.dicke + ' mm überschreitet den Falzraum von ' + sys.name + ' (max. ~' + sys.maxGlas + ' mm).');
 
   /* ---- Zuschnittliste (je Fenster) ---- */
-  const qsKantel = sys.rahmen.rohB + ' × ' + sys.rahmen.rohT + ' roh (' + p.rahmenB + ' fertig)';
+  const qsFuer = breite => (sys.rahmen.rohB - 80 + breite) + ' × ' + sys.rahmen.rohT + ' roh (' + breite + ' fertig)';
+  const qsKantel = qsFuer(p.fluegelB);
   const qsPfosten = sys.pfosten.rohB + ' × ' + sys.pfosten.rohT + ' roh (' + p.pfostenB + ' fertig)';
   const zuschnitt = [];
-  zuschnitt.push({ teil: 'Blendrahmen senkrecht', qs: qsKantel, anzahl: 2, laenge: ramH + p.zugabe, holzteil: 'Kantel' });
-  zuschnitt.push({ teil: 'Blendrahmen waagerecht', qs: qsKantel, anzahl: 2, laenge: ramB + p.zugabe, holzteil: 'Kantel' });
+  if (rb.l === rb.r && rb.r === rb.o && rb.o === rb.u) {
+    zuschnitt.push({ teil: 'Blendrahmen senkrecht', qs: qsFuer(rb.l), anzahl: 2, laenge: ramH + p.zugabe, holzteil: 'Kantel' });
+    zuschnitt.push({ teil: 'Blendrahmen waagerecht', qs: qsFuer(rb.o), anzahl: 2, laenge: ramB + p.zugabe, holzteil: 'Kantel' });
+  } else {
+    zuschnitt.push({ teil: 'Blendrahmen links (' + rb.l + ' mm)', qs: qsFuer(rb.l), anzahl: 1, laenge: ramH + p.zugabe, holzteil: 'Kantel' });
+    zuschnitt.push({ teil: 'Blendrahmen rechts (' + rb.r + ' mm)', qs: qsFuer(rb.r), anzahl: 1, laenge: ramH + p.zugabe, holzteil: 'Kantel' });
+    zuschnitt.push({ teil: 'Blendrahmen oben (' + rb.o + ' mm)', qs: qsFuer(rb.o), anzahl: 1, laenge: ramB + p.zugabe, holzteil: 'Kantel' });
+    zuschnitt.push({ teil: 'Blendrahmen unten (' + rb.u + ' mm)', qs: qsFuer(rb.u), anzahl: 1, laenge: ramB + p.zugabe, holzteil: 'Kantel' });
+  }
+  if (i.balkontuer) zuschnitt.push({ teil: 'Bodenschwelle Alu – ' + schwelleVon(i).kurz + ' (Länge prüfen)', qs: 'Alu-Profil', anzahl: 1, laenge: ramB - rb.l - rb.r });
   if (pfostenLaenge > 0) zuschnitt.push({ teil: 'Pfosten', qs: qsPfosten, anzahl: 1, laenge: pfostenLaenge + p.zugabe, holzteil: 'Pfostenkantel' });
   fluegel.forEach(f => {
     zuschnitt.push({ teil: f.name + ' senkrecht', qs: qsKantel, anzahl: 2, laenge: f.famH + p.zugabe, holzteil: 'Kantel' });
@@ -1313,7 +1373,9 @@ function berechne(i) {
   if (i.vsg) glasPreis += glasFlaeche * pM('zu_vsg');
   kAdd('Glas (' + fmt(glasFlaeche) + ' m²)', glasPreis);
   kAdd('Beschlag', beschlagListe.reduce((s, b) => s + b.anzahl * pB(b.key), 0));
-  kAdd('Dichtungen (' + fmt(ueberschlagDichtung + anschlagDichtung, 1) + ' lfm)', (ueberschlagDichtung + anschlagDichtung) * pM('dichtung'));
+  kAdd('Flügelfalzdichtung ' + i.dichtFalz + ' (' + fmt(anschlagDichtung, 1) + ' lfm)', anschlagDichtung * pM('dicht_falz'));
+  kAdd('Aufdeckdichtung ' + i.dichtAufdeck + ' (' + fmt(ueberschlagDichtung, 1) + ' lfm)', ueberschlagDichtung * pM('dicht_aufdeck'));
+  if (i.balkontuer) kAdd('Bodenschwelle ' + schwelleVon(i).kurz + ' (' + fmt((ramB - rb.l - rb.r) / 1000, 2) + ' lfm)', (ramB - rb.l - rb.r) / 1000 * pM(schwelleVon(i).preisKey));
   kAdd('Silikon S 110 (' + silikonKartuschen + ' Kart.)', silikonKartuschen * pM('silikon'));
   const obInnen = anstrichFlaeche / 2 * 0.2 * pM(i.obInnenTyp === 'ral' ? 'farbe' : 'lasur');
   const obAussen = anstrichFlaeche / 2 * 0.2 * pM(i.obAussenTyp === 'ral' ? 'farbe' : 'lasur');
@@ -1356,7 +1418,8 @@ function fensterSVG(r, opt) {
   const maxPx = opt.maxPx || 300, rand = 34;
   const sc = maxPx / Math.max(W, H);
   const w = W * sc, h = H * sc;
-  const fb = Math.max(4, p.rahmenB * sc);
+  const rbS = rahmenVon(i);
+  const fbL = Math.max(4, rbS.l * sc), fbR = Math.max(4, rbS.r * sc), fbO = Math.max(4, rbS.o * sc), fbU = Math.max(4, rbS.u * sc);
   const flb = Math.max(3.5, p.fluegelB * sc);
   const pfb = Math.max(5, p.pfostenB * sc);
   const el = [];
@@ -1399,7 +1462,14 @@ function fensterSVG(r, opt) {
   };
 
   R(0, 0, w, h, 'sv-rahmen');
-  const ox = fb, oy = fb, ow = w - 2 * fb, oh = h - 2 * fb;
+  const ox = fbL, oy = fbO, ow = w - fbL - fbR, oh = h - fbO - fbU;
+  if (opt.labels) {
+    // Blendrahmenbreiten je Seite in der Produktionsansicht
+    el.push('<text x="' + (fbL / 2).toFixed(1) + '" y="' + (h / 2).toFixed(1) + '" class="sv-rb" text-anchor="middle" transform="rotate(-90 ' + (fbL / 2).toFixed(1) + ' ' + (h / 2).toFixed(1) + ')">' + rbS.l + '</text>');
+    el.push('<text x="' + (w - fbR / 2).toFixed(1) + '" y="' + (h / 2).toFixed(1) + '" class="sv-rb" text-anchor="middle" transform="rotate(90 ' + (w - fbR / 2).toFixed(1) + ' ' + (h / 2).toFixed(1) + ')">' + rbS.r + '</text>');
+    el.push('<text x="' + (w / 2).toFixed(1) + '" y="' + (fbO / 2 + 3).toFixed(1) + '" class="sv-rb" text-anchor="middle">' + rbS.o + '</text>');
+    el.push('<text x="' + (w / 2).toFixed(1) + '" y="' + (h - fbU / 2 + 3).toFixed(1) + '" class="sv-rb" text-anchor="middle">' + rbS.u + '</text>');
+  }
   const bandVon = din => din === 'DIN links' ? 'L' : 'R';
 
   if (i.art === 'fest') {
@@ -1485,7 +1555,10 @@ function ergebnisHTML(r) {
     '<span>Außen: ' + obText(i.obAussenTyp, i.obAussenTon) + '</span>' +
     '<span>Silikon: S 110 ' + i.silikon + '</span>' +
     (i.typ === 'standard' ? '<span>Regenschiene: ' + i.regenFarbe + '</span>' : '<span>' + r.typ.wetterschutz + '</span>') +
-    (i.balkontuer ? '<span style="background:#fde8c8;border-color:#e07020;color:#7a3c00;font-weight:700">Balkontür · flache Schwelle</span>' : '') +
+    (i.balkontuer ? '<span style="background:#fde8c8;border-color:#e07020;color:#7a3c00;font-weight:700">Balkontür · ' + schwelleVon(i).kurz + '</span>' : '') +
+    '<span>Dichtungen: Falz ' + i.dichtFalz + ' · Aufdeck ' + i.dichtAufdeck + '</span>' +
+    (rahmenVon(i).l !== 80 || rahmenVon(i).r !== 80 || rahmenVon(i).o !== 80 || rahmenVon(i).u !== 80
+      ? '<span>Blendrahmen li ' + rahmenVon(i).l + ' · re ' + rahmenVon(i).r + ' · ob ' + rahmenVon(i).o + ' · un ' + rahmenVon(i).u + '</span>' : '') +
     '<span>' + i.stueck + ' Stück</span>' +
     '</div>';
 
@@ -1542,8 +1615,9 @@ function ergebnisHTML(r) {
   zeilen.push(matZeile('Kantel ' + r.holz.label + ' (Bestelllängen)', fmt(m.holzBestellLfm * s, 1) + ' lfm', '≈ ' + fmt(m.holzVolumen * s, 3) + ' m³'));
   zeilen.push(matZeile('Glasleisten ' + r.sys.glasleiste, fmt(m.glasleistenLfm * s, 1) + ' lfm', ''));
   zeilen.push(matZeile('Isolierglas', fmt(m.glasFlaeche * s) + ' m²', '≈ ' + fmt(m.glasGewicht * s, 0) + ' kg'));
-  if (m.ueberschlagDichtung) zeilen.push(matZeile('Überschlagdichtung', fmt(m.ueberschlagDichtung * s, 1) + ' lfm', 'inkl. 5 % Zugabe'));
-  if (m.anschlagDichtung) zeilen.push(matZeile('Falzdichtung Rahmen', fmt(m.anschlagDichtung * s, 1) + ' lfm', 'inkl. 5 % Zugabe'));
+  if (m.anschlagDichtung) zeilen.push(matZeile('Flügelfalzdichtung (' + i.dichtFalz + ')', fmt(m.anschlagDichtung * s, 1) + ' lfm', 'inkl. 5 % Zugabe'));
+  if (m.ueberschlagDichtung) zeilen.push(matZeile('Aufdeckdichtung (' + i.dichtAufdeck + ')', fmt(m.ueberschlagDichtung * s, 1) + ' lfm', 'inkl. 5 % Zugabe'));
+  if (i.balkontuer) zeilen.push(matZeile('Bodenschwelle ' + schwelleVon(i).kurz, fmt((r.ram.b - rahmenVon(i).l - rahmenVon(i).r) / 1000 * s, 2) + ' lfm', 'Länge zwischen den Blendrahmen – vor Ort prüfen'));
   zeilen.push(matZeile('Silikon Otto Seal S 110 (' + i.silikon + ')', (m.silikonKartuschen * s) + ' Kartusche(n)', 'Glasfalz innen + außen'));
   zeilen.push(matZeile('Oberfläche', fmt(m.anstrichFlaeche * s, 1) + ' m²', '≈ ' + fmt(m.lasurLiter * s, 1) + ' l bei 2 Anstrichen'));
   if (i.typ === 'standard' && m.regenschienenLfm) zeilen.push(matZeile('Regenschutzschiene (' + i.regenFarbe + ')', fmt(m.regenschienenLfm * s, 2) + ' lfm', r.regenschienen.map(x => fmtMM(x.laenge) + ' mm').join(', ')));
@@ -1591,7 +1665,8 @@ function prodSheetHTML(r) {
     (r.fluegel.length && i.teilung === '1' ? '<span>' + i.din + '</span>' : '') +
     (i.rc !== 'std' ? '<span>Sicherheit ' + RC[i.rc].label + '</span>' : '') +
     '<span>' + r.typ.wetterschutz + '</span>' +
-    (i.balkontuer ? '<span class="chip-balkontuer">Balkontür · flache Schwelle</span>' : '') +
+    (i.balkontuer ? '<span class="chip-balkontuer">Balkontür · ' + schwelleVon(i).kurz + '</span>' : '') +
+    '<span>Dichtungen: Falz ' + i.dichtFalz + ' · Aufdeck ' + i.dichtAufdeck + '</span>' +
     '</div>';
 
   r.warnungen.forEach(w => h += '<div class="ps-warn">⚠ ' + w + '</div>');
@@ -1604,6 +1679,8 @@ function prodSheetHTML(r) {
   h += '<h4>Maße [mm]</h4>';
   const mz = [];
   mz.push('<tr class="ps-mass-haupt"><td>BL</td><td>Blendrahmen</td><td class="num"><b>' + fmtMM(r.ram.b) + ' × ' + fmtMM(r.ram.h) + '</b></td><td class="num">–</td></tr>');
+  const rbP = rahmenVon(i);
+  mz.push('<tr><td></td><td>Rahmenbreiten</td><td colspan="2" class="num">li <b>' + rbP.l + '</b> · re <b>' + rbP.r + '</b> · ob <b>' + rbP.o + '</b> · un <b>' + rbP.u + '</b></td></tr>');
   r.fluegel.forEach((f, idx) => {
     mz.push('<tr class="ps-mass-haupt"><td>FL' + (idx + 1) + '</td><td>' + flCode(f.art, baender[idx]) +
       '</td><td class="num"><b>' + fmtMM(f.famB) + ' × ' + fmtMM(f.famH) + '</b></td>' +
@@ -1626,9 +1703,10 @@ function prodSheetHTML(r) {
   });
   h += tabelle([{ t: 'Feld' }, { t: 'Bestellmaß', num: 1 }, { t: 'Aufbau' }, { t: 'Ausführung' }], gz);
 
+  const kGruppen = {};
+  r.holzBestell.forEach(e => { (kGruppen[e.qs] = kGruppen[e.qs] || []).push(e.stueck + '× ' + fmtMM(e.laenge)); });
   h += '<h4>Kanteln (bestellt)</h4><p style="margin:2px 0 8px">' +
-    r.holzBestell.map(e => e.stueck + '× ' + fmtMM(e.laenge)).join(', ') +
-    ' mm &nbsp;<span style="color:#666">(' + r.sys.rahmen.rohB + ' × ' + r.sys.rahmen.rohT + ' roh)</span></p>';
+    Object.entries(kGruppen).map(([qs, l]) => l.join(', ') + ' mm <span style="color:#666">(' + qs + ')</span>').join('<br>') + '</p>';
 
   h += '</div></div>'; // ps-masse, ps-body
 
@@ -1636,6 +1714,7 @@ function prodSheetHTML(r) {
   h += '<div class="ps-boxen">' +
     '<div><b>Farbe innen</b><span>' + obText(i.obInnenTyp, i.obInnenTon) + '</span></div>' +
     '<div><b>Farbe außen</b><span>' + obText(i.obAussenTyp, i.obAussenTon) + '</span></div>' +
+    '<div><b>Dichtungen</b><span>Flügelfalz ' + i.dichtFalz + ' · Aufdeck ' + i.dichtAufdeck + '</span></div>' +
     '<div><b>Silikon</b><span>Otto Seal S 110 – ' + i.silikon + '</span></div>' +
     '<div><b>' + (i.typ === 'standard' ? 'Regenschutzschiene' : 'Wetterschenkel') + '</b><span>' +
       (i.typ === 'standard'
@@ -1648,7 +1727,7 @@ function prodSheetHTML(r) {
   const sbZelle = v => '<td class="num sb-wert">' + (v ? fmtMM(+v) : '') + '</td>';
   h += '<div class="ps-solbank">' +
     '<div style="flex:1;min-width:240px"><h4 style="margin-top:0">Blendrahmen unten – Solbank, Falz &amp; Nut [mm]</h4>' +
-    (i.balkontuer ? '<div class="ps-balkontuer">BALKONTÜR – flache Schwelle ausführen!</div>' : '') +
+    (i.balkontuer ? '<div class="ps-balkontuer">BALKONTÜR – Bodenschwelle: ' + schwelleVon(i).label + '</div>' : '') +
     '<div class="tblwrap"><table>' +
     '<thead><tr><th></th><th></th><th class="num">Tiefe</th><th class="num">Höhe</th></tr></thead><tbody>' +
     '<tr><td>Falz</td><td>innen</td>' + sbZelle(sb.fiT) + sbZelle(sb.fiH) + '</tr>' +
@@ -1658,6 +1737,7 @@ function prodSheetHTML(r) {
     '</tbody></table></div></div>' +
     '<div class="ps-sb-skizze">' + profilSchnittBild(i.typ === 'standard' ? 'standard' : 'wetterschenkel') + '</div>' +
     (i.teilung === 'stulp' ? '<div class="ps-sb-skizze">' + profilSchnittBild('mittelschluss') + '</div>' : '') +
+    (i.balkontuer ? '<div class="ps-sb-skizze"><a href="' + schwelleVon(i).bild + '" target="_blank" rel="noopener"><img src="' + schwelleVon(i).bild + '" alt="Bodenschwelle"></a><small>Bodenschwelle: ' + schwelleVon(i).label + '</small></div>' : '') +
     '</div>';
 
   // Bemerkung
@@ -1833,6 +1913,7 @@ function projektBarRendern() {
   $('projektName').value = aktivesProjekt().name;
 }
 function alleAnsichtenAktualisieren() {
+  if (bearbeiteIdx !== null) bearbeitenEnde();
   projektBarRendern();
   positionenRendern();
   produktionRendern();
@@ -2068,7 +2149,7 @@ function positionenRendern() {
   const holzAgg = new Map();      // holzteil|qs|holzart|länge -> stück
   const glasAgg = new Map();      // beschreibung|maß -> stück
   const beschlagAgg = new Map();  // key -> anzahl
-  const sonst = { dichtung: 0, silikon: new Map(), regen: new Map(), lasur: 0, flaeche: 0, glasleisten: 0 };
+  const sonst = { dichtung: new Map(), schwellen: new Map(), silikon: new Map(), regen: new Map(), lasur: 0, flaeche: 0, glasleisten: 0 };
   let kalkGesamt = 0, richtGesamt = 0, fensterGesamt = 0;
 
   list.forEach((pIn, idx) => {
@@ -2088,7 +2169,13 @@ function positionenRendern() {
       glasAgg.set(key, (glasAgg.get(key) || 0) + s);
     });
     r.beschlag.forEach(b => beschlagAgg.set(b.key, (beschlagAgg.get(b.key) || 0) + b.anzahl * s));
-    sonst.dichtung += (r.material.ueberschlagDichtung + r.material.anschlagDichtung) * s;
+    const kF = 'Flügelfalzdichtung ' + (pIn.dichtFalz || 'Schwarz'), kA = 'Aufdeckdichtung ' + (pIn.dichtAufdeck || 'Schwarz');
+    sonst.dichtung.set(kF, (sonst.dichtung.get(kF) || 0) + r.material.anschlagDichtung * s);
+    sonst.dichtung.set(kA, (sonst.dichtung.get(kA) || 0) + r.material.ueberschlagDichtung * s);
+    if (pIn.balkontuer) {
+      const kS = 'Bodenschwelle ' + schwelleVon(pIn).kurz + ' – ' + fmtMM(r.ram.b - rahmenVon(pIn).l - rahmenVon(pIn).r) + ' mm';
+      sonst.schwellen.set(kS, (sonst.schwellen.get(kS) || 0) + s);
+    }
     sonst.glasleisten += r.material.glasleistenLfm * s;
     sonst.silikon.set(pIn.silikon, (sonst.silikon.get(pIn.silikon) || 0) + r.material.silikonKartuschen * s);
     r.regenschienen.forEach(x => {
@@ -2155,7 +2242,8 @@ function positionenRendern() {
 
   g += '<h3>Sonstiges</h3>';
   const sz = [];
-  sz.push(matZeile('Dichtungen', fmt(sonst.dichtung, 1) + ' lfm', ''));
+  sonst.dichtung.forEach((lfm, key) => { if (lfm > 0) sz.push(matZeile(key, fmt(lfm, 1) + ' lfm', 'inkl. 5 % Zugabe')); });
+  sonst.schwellen.forEach((n, key) => sz.push(matZeile(key, n + ' Stück', 'Länge vor Ort prüfen')));
   sonst.silikon.forEach((n, farbe) => sz.push(matZeile('Otto Seal S 110 – ' + farbe, n + ' Kartusche(n)', '')));
   sonst.regen.forEach((n, key) => sz.push(matZeile('Regenschutzschiene ' + key, n + ' Stück', '')));
   sz.push(matZeile('Oberfläche (Lasur/Farbe)', fmt(sonst.lasur, 1) + ' l', fmt(sonst.flaeche, 1) + ' m², 2 Anstriche'));
@@ -2181,6 +2269,7 @@ function positionenRendern() {
     btn.addEventListener('click', () => {
       const l = positionenLaden();
       positionInsFormular(l[+btn.dataset.laden]);
+      bearbeitenStart(+btn.dataset.laden, l[+btn.dataset.laden].pos);
       tabZeigen('erfassen');
       rechnenUndZeigen();
     });
@@ -2221,6 +2310,11 @@ function positionInsFormular(i) {
   $('regenFarbe').value = i.regenFarbe;
   $('regenLaenge').value = i.regenLaenge || '';
   $('balkontuer').checked = !!i.balkontuer;
+  $('schwelle').value = i.schwelle || 'flach';
+  const rbF = rahmenVon(i);
+  $('rbL').value = rbF.l; $('rbR').value = rbF.r; $('rbO').value = rbF.o; $('rbU').value = rbF.u;
+  $('dichtFalz').value = i.dichtFalz || 'Schwarz';
+  $('dichtAufdeck').value = i.dichtAufdeck || 'Schwarz';
   const sb = i.solbank || {};
   $('sb_fiT').value = sb.fiT || ''; $('sb_fiH').value = sb.fiH || '';
   $('sb_faT').value = sb.faT || ''; $('sb_faH').value = sb.faH || '';
@@ -2280,6 +2374,33 @@ function teilungAnpassen() {
 }
 function typAnpassen() {
   $('regenBereich').style.display = $('typ').value === 'standard' ? '' : 'none';
+  $('schwelleFeld').style.display = $('balkontuer').checked ? '' : 'none';
+}
+
+/* ---- Position nachträglich bearbeiten ---- */
+let bearbeiteIdx = null;
+function bearbeitenStart(idx, name) {
+  bearbeiteIdx = idx;
+  $('bearbeitenName').textContent = name;
+  $('bearbeitenLeiste').style.display = '';
+}
+function bearbeitenEnde() {
+  bearbeiteIdx = null;
+  $('bearbeitenLeiste').style.display = 'none';
+}
+function bearbeitenSpeichern() {
+  if (bearbeiteIdx === null) return;
+  const list = positionenLaden();
+  if (!list[bearbeiteIdx]) { bearbeitenEnde(); return; }
+  const i = eingabenLesen();
+  const r = berechne(i);
+  if (r.fehler) { $('ergebnisInhalt').innerHTML = ergebnisHTML(r); return; }
+  list[bearbeiteIdx] = i;
+  positionenSpeichern(list);
+  bearbeitenEnde();
+  rechnenUndZeigen();
+  alleAnsichtenAktualisieren();
+  tabZeigen('projekt');
 }
 function ornamentZeigen() {
   $('ornamentFeld').style.display = $('glasTyp').value === 'ornament' ? '' : 'none';
@@ -2316,6 +2437,9 @@ document.querySelectorAll('nav.tabs button').forEach(b =>
 $('system').addEventListener('change', glasOptionenFuellen);
 $('art').addEventListener('change', teilungAnpassen);
 $('typ').addEventListener('change', typAnpassen);
+$('balkontuer').addEventListener('change', typAnpassen);
+$('btnBearbeitenSpeichern').addEventListener('click', bearbeitenSpeichern);
+$('btnBearbeitenAbbrechen').addEventListener('click', bearbeitenEnde);
 $('glasTyp').addEventListener('change', ornamentZeigen);
 $('btnBerechnen').addEventListener('click', rechnenUndZeigen);
 $('btnHinzufuegen').addEventListener('click', () => {
