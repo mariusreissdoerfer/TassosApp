@@ -257,7 +257,17 @@
   .ps-solbank { display: flex; flex-wrap: wrap; gap: 14px; border-top: 1px solid #2b2b2b; padding: 8px 14px; align-items: flex-start; }
   .ps-solbank table { max-width: 340px; margin-bottom: 4px; }
   .ps-solbank td.sb-wert { min-width: 74px; height: 27px; font-weight: 700; }
-  .ps-sb-skizze { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; background: #fff; }
+  .ps-sb-skizze { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; background: #fff; text-align: center; }
+  .ps-sb-skizze img { display: block; max-height: 200px; max-width: 320px; width: auto; height: auto; }
+  .ps-sb-skizze small { display: block; font-size: .68rem; color: #666; margin-top: 2px; }
+  .profilgalerie { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .profilgalerie figure { margin: 0; border: 1px solid var(--linie); border-radius: 8px; padding: 8px; background: #fff; }
+  .profilgalerie img { width: 100%; height: auto; display: block; border: 1px solid #ddd; }
+  .profilgalerie figcaption { font-size: .8rem; color: #444; margin-top: 6px; }
+  .profil-mini { display: flex; flex-wrap: wrap; gap: 14px; margin: 6px 0; }
+  .profil-mini figure { margin: 0; text-align: center; }
+  .profil-mini img { max-height: 180px; width: auto; border: 1px solid #ccc; border-radius: 6px; background: #fff; }
+  .profil-mini figcaption { font-size: .75rem; color: #666; margin-top: 3px; }
   .ps-balkontuer {
     background: #fde8c8;
     border: 2px solid #e07020;
@@ -289,6 +299,9 @@
   }
   @media print {
     body { background: #fff; padding: 0; }
+    .profilgalerie { grid-template-columns: 1fr; }
+    .profilgalerie figure { page-break-inside: avoid; page-break-after: always; border: none; }
+    .profilgalerie figure:last-child { page-break-after: auto; }
     .nur-bildschirm, header p, .btnrow, details.einstellungen, nav.tabs { display: none !important; }
     .panel { border: none; padding: 8px 0; }
     header { background: none; color: #000; padding: 0 0 8px; border-bottom: 2px solid #000; border-radius: 0; }
@@ -311,6 +324,7 @@
   <button data-tab="produktion">Produktionslisten</button>
   <button data-tab="projekt">Positionen &amp; Bestellliste</button>
   <button data-tab="kalkulation">Kalkulation</button>
+  <button data-tab="profile">Profilschnitte</button>
   <button data-tab="stamm">Preise &amp; Stammdaten</button>
 </nav>
 <div class="projektzeile nur-bildschirm">
@@ -612,10 +626,10 @@
     <button id="btnLeeren" class="gefahr">Positionsliste löschen</button>
   </div>
   <p class="hinweis">
-    Alle Werte sind <b>Richtwerte nach Werkstattformel</b>. Die Beschlagliste orientiert sich am
-    <b>Siegenia TITAN AF</b>-Sortiment für Holzfenster – Artikelnummern unter „Preise &amp; Stammdaten“
-    aus dem aktuellen Siegenia-Katalog eintragen, dann erscheinen sie automatisch in den Bestelllisten.
-    Kantellängen werden auf volle 100&nbsp;mm aufgerundet (Lieferlängen 800–3500&nbsp;mm).
+    Maße nach <b>Werkstattformel</b>. Beschlag nach den <b>Siegenia-TITAN-AF-Beschlaglisten</b>
+    (1-flg. Dreh-Kipp RC2 · Zweitflügel DS 16 · Katalog 02.2026): Teile und Größen werden nach FFB/FFH
+    aus den Tabellen gewählt, Materialnummern sind vorbelegt („-…" = Endung je Oberfläche/Variante unter
+    „Preise &amp; Stammdaten“ ergänzen). Kantellängen auf volle 100&nbsp;mm aufgerundet (800–3500&nbsp;mm).
   </p>
 </section>
 
@@ -625,6 +639,29 @@
   <div id="kalkulationInhalt"><p class="leer">Noch keine Positionen erfasst.</p></div>
   <div class="btnrow nur-bildschirm">
     <button id="btnDruckenKalk" class="sekundaer">🖨 Kalkulation drucken</button>
+  </div>
+</section>
+
+<!-- ================= TAB: PROFILSCHNITTE ================= -->
+<section class="panel" id="tab-profile" style="display:none">
+  <h2>Profilschnitte (Leitz-Werkzeugsatz L 161503926)</h2>
+  <p class="hinweis nur-bildschirm" style="margin:0 0 12px">Zum Vergrößern anklicken – öffnet die Zeichnung in voller Auflösung. Auf den Produktionslisten erscheint automatisch der passende Ausschnitt.</p>
+  <div class="profilgalerie">
+    <figure>
+      <a href="img/schnitt-standard.jpg" target="_blank" rel="noopener"><img src="img/schnitt-standard.jpg" alt="Vertikalschnitt Standard mit Regenschiene"></a>
+      <figcaption><b>Vertikalschnitt – Standard mit Regenschiene</b><br>Gutmann SPREE 24 OF · Varianten Stemeseder FS 24-48 / Stilschiene · 20° Aufdeckschräge</figcaption>
+    </figure>
+    <figure>
+      <a href="img/schnitt-wetterschenkel.jpg" target="_blank" rel="noopener"><img src="img/schnitt-wetterschenkel.jpg" alt="Vertikalschnitt ohne Regenschiene (Wetterschenkel)"></a>
+      <figcaption><b>Vertikalschnitt – Denkmalschutz ohne Regenschiene</b><br>IV 68 / 78 / 88 · Wetterschenkel Holz</figcaption>
+    </figure>
+    <figure>
+      <a href="img/schnitt-mittelschluss.jpg" target="_blank" rel="noopener"><img src="img/schnitt-mittelschluss.jpg" alt="Horizontalschnitt Mittelschluss"></a>
+      <figcaption><b>Horizontalschnitt – Mittelschluss (Stulp)</b><br>IV 68 · Gesamt 130 mm, je Flügel 78 mm</figcaption>
+    </figure>
+  </div>
+  <div class="btnrow nur-bildschirm">
+    <button id="btnDruckenProfile" class="sekundaer">🖨 Profilschnitte drucken</button>
   </div>
 </section>
 
@@ -642,7 +679,9 @@
   </div>
   <h3>Materialpreise</h3>
   <div id="matPreise"></div>
-  <h3>Beschlagteile Siegenia (Artikel-Nr. + Preis)</h3>
+  <h3>Beschlagteile Siegenia TITAN AF (Materialnummer + Preis)</h3>
+  <p class="hinweis" style="margin:0 0 8px">Materialnummern aus den Siegenia-Beschlaglisten (1-flg. Dreh-Kipp RC2 S001DE-12, Zweitflügel DS 16 S002DE-14, Katalog 02.2026) sind vorbelegt.
+    „-…" steht für die Endung nach Oberfläche/Variante – hier ergänzen. Preise sind EK-Richtwerte, an eigene Konditionen anpassen.</p>
   <div id="beschlagStamm"></div>
   <h3>Kalkulationsaufschlag</h3>
   <div class="grid" style="max-width:300px">
@@ -731,44 +770,120 @@ const PROFIL_DEFAULTS = {
   glaseinstand: 18, glasspiel: 5, zugabe: 50, fuge: 15
 };
 
-/* Beschlag-Stammdaten (Siegenia TITAN AF, Holz) */
+/* Beschlag-Stammdaten Siegenia TITAN AF (Holz, H12 GM Bandseite TITAN)
+   Quellen: Beschlagliste 1-flg. Dreh-Kipp RC2 H48.TAFH2M2+S001DE-12 (10.2017),
+   Beschlagliste Zweitflügel DS 16 H48.TAFH2M2+S002DE-14 (04.2018),
+   Beschlagkatalog 02.2026-V7 S. 119 (Getriebe DS 16). Materialnummern sind
+   Präfixe ("-…" = Endung nach Oberfläche/Variante, im Stammdatenfeld ergänzen). */
 const BESCHLAG_DEF = [
-  { key: 'ecklager',      label: 'Ecklager + Ecklagerband' },
-  { key: 'scherenlager',  label: 'Scherenlagerband' },
-  { key: 'schere_1',      label: 'Scherenarm Gr. 1' },
-  { key: 'schere_2',      label: 'Scherenarm Gr. 2' },
-  { key: 'schere_3',      label: 'Scherenarm Gr. 3' },
-  { key: 'schere_4',      label: 'Scherenarm Gr. 4' },
-  { key: 'zusatzschere',  label: 'Zusatzschere TITAN' },
-  { key: 'getr_dk_1',     label: 'DK-Getriebe TITAN AF Gr. 1' },
-  { key: 'getr_dk_2',     label: 'DK-Getriebe TITAN AF Gr. 2' },
-  { key: 'getr_dk_3',     label: 'DK-Getriebe TITAN AF Gr. 3' },
-  { key: 'getr_dk_4',     label: 'DK-Getriebe TITAN AF Gr. 4' },
-  { key: 'getr_d_1',      label: 'Dreh-Getriebe Gr. 1' },
-  { key: 'getr_d_2',      label: 'Dreh-Getriebe Gr. 2' },
-  { key: 'getr_d_3',      label: 'Dreh-Getriebe Gr. 3' },
-  { key: 'getr_d_4',      label: 'Dreh-Getriebe Gr. 4' },
-  { key: 'getr_st_1',     label: 'Stulpflügelgetriebe Gr. 1' },
-  { key: 'getr_st_2',     label: 'Stulpflügelgetriebe Gr. 2' },
-  { key: 'getr_st_3',     label: 'Stulpflügelgetriebe Gr. 3' },
-  { key: 'getr_st_4',     label: 'Stulpflügelgetriebe Gr. 4' },
-  { key: 'eckuml',        label: 'Eckumlenkung VSO' },
-  { key: 'mv',            label: 'Mittelverriegelung MV' },
-  { key: 'zv',            label: 'Zusatzverriegelung unten' },
-  { key: 'pilz',          label: 'Pilzkopf-Zusatzverriegelung (RC)' },
-  { key: 'sb',            label: 'Schließblech Standard' },
-  { key: 'sb_rc',         label: 'Sicherheitsschließblech RC' },
-  { key: 'drehband',      label: 'Drehlagerband oben' },
-  { key: 'kipplager',     label: 'Kipplager' },
-  { key: 'fangschere',    label: 'Fangschere / Kippschere' },
-  { key: 'kippverschluss',label: 'Kippverschluss-Getriebe' },
-  { key: 'schliesskloben',label: 'Schließkloben' },
-  { key: 'griff',         label: 'Fenstergriff Si-line' },
-  { key: 'griff_ab',      label: 'Fenstergriff Si-line abschließbar' },
-  { key: 'schrauben',     label: 'Beschlagschrauben (Paket)' },
-  { key: 'kloetze',       label: 'Glasklötze (Satz je Feld)' }
+  // Griffseite / Umlenkungen
+  { g: 'Flügelteile', key: 'uml_vso',         label: 'Umlenkung AF VSO 2RS A0055',            artnr: 'TEUL4070-…' },
+  { g: 'Flügelteile', key: 'uml_vso_wk2_sb',  label: 'Umlenkung AF VSO WK2 SB 1RS (Standflügel)', artnr: 'TEUL4080-…' },
+  { g: 'Flügelteile', key: 'uml_vsu_fh',      label: 'Umlenkung AF VSU/K+ FH 1S 1RS A0055',   artnr: 'TEUL5020-…' },
+  { g: 'Flügelteile', key: 'verr_vsu_k',      label: 'Verriegelung VSU/K FH+ 1S (Standflügel)', artnr: 'TEVR1400-…' },
+  { g: 'Flügelteile', key: 'uml_vsu_wk2_sb',  label: 'Uml. AF VSU/K+ WK2 FH SB 1S (Standflügel)', artnr: 'TEUL5110-…' },
+  // Scheren
+  { g: 'Flügelteile', key: 'schere_0',        label: 'Schere AF Gr.0',                        artnr: 'TSKK2000-…' },
+  { g: 'Flügelteile', key: 'schere_1',        label: 'Schere AF Gr.1',                        artnr: 'TSKK2010-…' },
+  { g: 'Flügelteile', key: 'schere_2',        label: 'Schere AF Gr.2',                        artnr: 'TSKK2020-…' },
+  { g: 'Flügelteile', key: 'schere_3',        label: 'Schere AF Gr.3 1RS',                    artnr: 'TSKK2030-…' },
+  { g: 'Flügelteile', key: 'schere_4',        label: 'Schere AF Gr.4 1RS',                    artnr: 'TSKK2040-…' },
+  { g: 'Flügelteile', key: 'zw_zusatzschere', label: 'Zwischenstück Zusatzschere 1RS',        artnr: 'TZOK1010-…' },
+  { g: 'Flügelteile', key: 'zusatzschere',    label: 'Zusatzschere',                          artnr: 's. PDB, TSZS' },
+  { g: 'Flügelteile', key: 'unterleg_z',      label: 'Unterlegplatte Z',                      artnr: 's. PDB, FRUP01' },
+  { g: 'Flügelteile', key: 'zw_af_gr1',       label: 'Zwischenstück AF Gr.1',                 artnr: 'TZZS0150-…' },
+  // Verlängerungen / Zwischenstücke
+  { g: 'Flügelteile', key: 'verl_1',          label: 'Verlängerung Gr.1+ 1RS',                artnr: 'TVSO0200-…' },
+  { g: 'Flügelteile', key: 'verl_2',          label: 'Verlängerung Gr.2+ 1RS',                artnr: 'TVSL0320-…' },
+  { g: 'Flügelteile', key: 'verl_3',          label: 'Verlängerung Gr.3+ 1RS',                artnr: 'TVSL0330-…' },
+  { g: 'Flügelteile', key: 'verl_4',          label: 'Verlängerung Gr.4+ 1RS',                artnr: 'TVSL0340-…' },
+  { g: 'Flügelteile', key: 'verl_5',          label: 'Verlängerung Gr.5+ 1RS',                artnr: 'TVSL0350-…' },
+  { g: 'Flügelteile', key: 'verl_6',          label: 'Verlängerung Gr.6+ 1RS',                artnr: 'TVSL0360-…' },
+  { g: 'Flügelteile', key: 'zw_bs_1',         label: 'Zwischenstück BS/FH Gr.1+ 1RS',         artnr: 'TZBS0180-…' },
+  { g: 'Flügelteile', key: 'zw_bs_2',         label: 'Zwischenstück BS/FH Gr.2+ 1RS',         artnr: 'TZBS0190-…' },
+  { g: 'Flügelteile', key: 'zw_bs_3',         label: 'Zwischenstück BS/FH Gr.3+ 1RS',         artnr: 'TZBS0200-…' },
+  { g: 'Flügelteile', key: 'zw_bs_3_70',      label: 'Zwischenstück BS/FH Gr.3+ 1RS 70',      artnr: 'TZBS0300-…' },
+  // Getriebe 15 AF (Dreh-Kipp)
+  { g: 'Getriebe', key: 'getr_20',            label: 'Getriebe 15 AF Gr.20 (FFH 460–600)',    artnr: 'TGMK4010-…' },
+  { g: 'Getriebe', key: 'getr_60',            label: 'Getriebe 15 AF Gr.60 (FFH 601–1000)',   artnr: 'TGMK4020-…' },
+  { g: 'Getriebe', key: 'getr_80',            label: 'Getriebe 15 AF Gr.80 1RS (FFH 1001–1200)', artnr: 'TGMK4040-…' },
+  { g: 'Getriebe', key: 'getr_120',           label: 'Getriebe 15 AF Gr.120 1RS (FFH 1201–1600)', artnr: 'TGMK4050-…' },
+  { g: 'Getriebe', key: 'getr_160',           label: 'Getriebe 15 AF Gr.160 2RS 70 (FFH 1601–2000)', artnr: 'TGMK4170-…' },
+  { g: 'Getriebe', key: 'getr_200',           label: 'Getriebe 15 AF Gr.200 2RS (FFH 2001–3000)', artnr: 'TGMK4080-…' },
+  { g: 'Getriebe', key: 'zw_kk_1',            label: 'Zwischenstück KK/AF Gr.1 1RS',          artnr: 'TZKK1010-…' },
+  { g: 'Getriebe', key: 'zw_kk_2',            label: 'Zwischenstück KK/AF Gr.2 1RS',          artnr: 'TZKK1020-…' },
+  // Stulpgetriebe DS 16 (Standflügel)
+  { g: 'Getriebe', key: 'stulp_30',           label: 'Getr.Stulp 16 Gr.30 (FFH 460–600)',     artnr: 'TGKS0010-…' },
+  { g: 'Getriebe', key: 'stulp_60',           label: 'Getr.Stulp 16 AF 60/G300 (FFH 601–800)', artnr: 'TGKS4030-…' },
+  { g: 'Getriebe', key: 'stulp_80',           label: 'Getriebe DS 16 Gr.80 1SB (FFH 801–1200)', artnr: 'TGMS4240-…' },
+  { g: 'Getriebe', key: 'stulp_120',          label: 'Getriebe DS 16 Gr.120 1SB (FFH 1201–1600)', artnr: 'TGMS4250-…' },
+  { g: 'Getriebe', key: 'stulp_160',          label: 'Getriebe DS 16 Gr.160 2SB (FFH 1601–2000)', artnr: 'TGMS4270-…' },
+  { g: 'Getriebe', key: 'stulp_200',          label: 'Getriebe DS 16 Gr.200 2SB (FFH 2001–3000)', artnr: 'TGMS4280-…' },
+  { g: 'Getriebe', key: 'zw_ks_2_rs',         label: 'Zwischenstück Gr.2 1SB-RS',             artnr: 'TZKS1030-…' },
+  { g: 'Getriebe', key: 'zw_ks_3_rs',         label: 'Zwischenstück Gr.3 1SB-RS',             artnr: 'TZKS1080-…' },
+  // Bandseite Umlenkungen
+  { g: 'Flügelteile', key: 'uml_bso_k3',      label: 'Umlenkung BSO/K3+ 1RS (FFH ≤ 1000)',    artnr: 'TEUL2400-…' },
+  { g: 'Flügelteile', key: 'uml_bs_k3_1',     label: 'Umlenkung BS/K3 Gr.1+ 2RS (FFH 1001–1200)', artnr: 'TEUL2380-…' },
+  { g: 'Flügelteile', key: 'uml_bs_k3_2',     label: 'Umlenkung BS/K3 Gr.2+ 2RS (FFH 1201–3000)', artnr: 'TEUL2390-…' },
+  { g: 'Flügelteile', key: 'uml_bs_2',        label: 'Umlenkung BS Gr.2+ 1RS (Standfl., FFH 1001–1600)', artnr: 'TEUL2420-…' },
+  { g: 'Flügelteile', key: 'uml_bs_4',        label: 'Umlenkung BS Gr.4+ 2RS (Standfl., FFH 1601–3000)', artnr: 'TEUL2700-…' },
+  // Griff, Sicherung, Kleinteile
+  { g: 'Zubehör', key: 'hebel_globe',         label: 'Hebel Globe abschließbar 100 Nm',       artnr: 's. EBS ZHGA100' },
+  { g: 'Zubehör', key: 'griff',               label: 'Fenstergriff Si-line (Standard)',       artnr: '' },
+  { g: 'Zubehör', key: 'anbohrschutz',        label: 'Anbohrschutz E',                        artnr: 'TGBS0010-…' },
+  { g: 'Zubehör', key: 'falzluftbegrenzer',   label: 'Falzluftbegrenzer',                     artnr: 's. PDB, FRFL' },
+  { g: 'Zubehör', key: 'falzluftbegrenzer_f', label: 'Falzluftbegrenzer F',                   artnr: 'TFFB0010-…' },
+  { g: 'Zubehör', key: 'unterleg_rb',         label: 'Unterlegplatte RB/FPS',                 artnr: 's. PDB, FRUP02' },
+  { g: 'Zubehör', key: 'aushebelsicherung',   label: 'Aushebelsicherung',                     artnr: 's. PDB, TFAH' },
+  // Rahmenteile
+  { g: 'Rahmenteile', key: 'kippriegellager', label: 'Kippriegellager S-ES FH',               artnr: 's. PDB, FRKA' },
+  { g: 'Rahmenteile', key: 'sb_srs',          label: 'Schließblech S-RS',                     artnr: 's. PDB, TRSK' },
+  { g: 'Rahmenteile', key: 'sb_srs_wk2',      label: 'Schließblech S-RS WK2 BSO',             artnr: 's. PDB, TRSK03' },
+  // Bandseite (Drehpunkte)
+  { g: 'Bandseite', key: 'winkelband',        label: 'Winkelband DH',                         artnr: 's. PDB, TBWB81' },
+  { g: 'Bandseite', key: 'kappe_wh',          label: 'Abdeckkappe W H',                       artnr: 'TKWB7010-004 (RAL 9016) / -012 (RAL 8022)' },
+  { g: 'Bandseite', key: 'scherenlager',      label: 'Scherenlager',                          artnr: 's. PDB, TBSL81' },
+  { g: 'Bandseite', key: 'kappe_s',           label: 'Abdeckkappe S',                         artnr: 'TKSL0020-004 / -012' },
+  { g: 'Bandseite', key: 'bolzen',            label: 'Scherenlagerbolzen Poly',               artnr: 'TBSB6020-1…' },
+  { g: 'Bandseite', key: 'falzeckband',       label: 'Falzeckband',                           artnr: 's. PDB, TBFE81' },
+  { g: 'Bandseite', key: 'kappe_feb_re',      label: 'Abdeckkappe FEB rechts',                artnr: 'TKFE7011-004 / -012' },
+  { g: 'Bandseite', key: 'kappe_feb_li',      label: 'Abdeckkappe FEB links',                 artnr: 'TKFE7012-004 / -012' },
+  { g: 'Bandseite', key: 'ecklager',          label: 'Ecklager',                              artnr: 's. PDB, TBEL81' },
+  { g: 'Bandseite', key: 'kappe_el_o',        label: 'Abdeckkappe EL O MB',                   artnr: 'TKEO0010-004 / -012' },
+  { g: 'Bandseite', key: 'kappe_el_u',        label: 'Abdeckkappe EL U',                      artnr: 'TKEU0010-004 / -012' },
+  // Auf Wunsch (nicht automatisch)
+  { g: 'Auf Wunsch', key: 'kippbegrenzer',    label: 'Kippbegrenzer (FFH 460–800)',           artnr: 'TFKB0010-…' },
+  { g: 'Auf Wunsch', key: 'fehlbedienungssperre', label: 'Fehlbedienungssperre',              artnr: 'TFBS0010-…' },
+  { g: 'Auf Wunsch', key: 'schnaepper',       label: 'Schließteil Schnäpper A0767',           artnr: 'TRST0010-…' },
+  { g: 'Auf Wunsch', key: 'hebel_vl_re',      label: 'Hebel VL Stulp rechts',                 artnr: 'THVL0031-…' },
+  { g: 'Auf Wunsch', key: 'hebel_vl_li',      label: 'Hebel VL Stulp links',                  artnr: 'THVL0032-…' },
+  // Kippfenster (Richtwert, ohne Katalogseite)
+  { g: 'Kippfenster', key: 'kipplager',       label: 'Kipplager',                             artnr: '' },
+  { g: 'Kippfenster', key: 'fangschere',      label: 'Fangschere / Kippschere',               artnr: '' },
+  { g: 'Kippfenster', key: 'kippverschluss',  label: 'Kippverschluss-Getriebe',               artnr: '' },
+  // Sonstiges
+  { g: 'Sonstiges', key: 'schrauben',         label: 'Beschlagschrauben (Paket)',             artnr: '' },
+  { g: 'Sonstiges', key: 'kloetze',           label: 'Glasklötze (Satz je Feld)',             artnr: '' }
 ];
 const BESCHLAG_LABEL = Object.fromEntries(BESCHLAG_DEF.map(b => [b.key, b.label]));
+const BESCHLAG_ARTNR = Object.fromEntries(BESCHLAG_DEF.map(b => [b.key, b.artnr || '']));
+
+/* Auswahltabellen aus den Siegenia-Beschlaglisten: [von, bis, Schlüssel, Schließbleche S-RS, Schließbleche WK2 BSO] */
+const SIEGENIA = {
+  schereFFB:      [[400,450,'schere_0',0],[451,680,'schere_1',0],[681,850,'schere_2',0],[851,1050,'schere_3',1],[1051,1250,'schere_4',1],[1251,1450,'schere_3',1],[1451,1650,'schere_4',1]],
+  verlObenFFB:    [[400,450,'verl_1'],[451,550,'verl_2'],[551,680,'verl_3'],[681,850,'verl_4'],[851,1050,'verl_6'],[1051,1250,'verl_3'],[1251,1450,'verl_5'],[1451,1650,'verl_4']],
+  zwObenFFB:      [[1051,1450,'zw_bs_2'],[1451,1650,'zw_bs_3']],
+  getriebeFFH:    [[460,600,'getr_20',0],[601,1000,'getr_60',0],[1001,1200,'getr_80',1],[1201,1600,'getr_120',1],[1601,2000,'getr_160',2],[2001,3000,'getr_200',2]],
+  zwKKFFH:        [[2401,2800,'zw_kk_1'],[2801,3000,'zw_kk_2']],
+  umlBandFFH:     [[460,1000,'uml_bso_k3',0,1],[1001,1200,'uml_bs_k3_1',1,1],[1201,3000,'uml_bs_k3_2',1,1]],
+  verlBandFFH:    [[501,600,'verl_1'],[601,800,'verl_2'],[801,1000,'verl_4'],[1001,1400,'verl_3'],[1401,1800,'verl_2'],[1801,2000,'verl_4'],[2001,2200,'verl_3'],[2201,2400,'verl_5'],[2401,2600,'verl_5'],[2601,2800,'verl_5'],[2801,3000,'verl_4']],
+  zwBand1FFH:     [[1401,1600,'zw_bs_1'],[1601,2000,'zw_bs_2'],[2001,3000,'zw_bs_3']],
+  zwBand2FFH:     [[2401,2600,'zw_bs_1'],[2601,2800,'zw_bs_2'],[2801,3000,'zw_bs_3']],
+  stulpGetrFFH:   [[460,600,'stulp_30',0],[601,800,'stulp_60',0],[801,1200,'stulp_80',1],[1201,1600,'stulp_120',1],[1601,2000,'stulp_160',2],[2001,3000,'stulp_200',2]],
+  stulpZwFFH:     [[2401,2600,'zw_af_gr1',0],[2601,2800,'zw_ks_2_rs',1],[2801,3000,'zw_ks_3_rs',1]],
+  stulpUmlBandFFH:[[460,1000,'uml_bso_k3',0,1,1],[1001,1600,'uml_bs_2',1,0,1],[1601,3000,'uml_bs_4',2,0,2]]
+};
+const bereich = (v, t) => t.find(r => v >= r[0] && v <= r[1]) || null;
 
 const MATERIAL_DEF = [
   { key: 'holz_fichte',  label: 'Kantel Fichte',  einheit: '€/lfm' },
@@ -801,17 +916,23 @@ const STANDARD_PREISE = {
     regenschiene: 12
   },
   preisB: {
-    ecklager: 9, scherenlager: 6,
-    schere_1: 9, schere_2: 10, schere_3: 11, schere_4: 13,
-    zusatzschere: 12,
-    getr_dk_1: 12, getr_dk_2: 13, getr_dk_3: 15, getr_dk_4: 18,
-    getr_d_1: 10, getr_d_2: 11, getr_d_3: 12, getr_d_4: 14,
-    getr_st_1: 14, getr_st_2: 15, getr_st_3: 17, getr_st_4: 19,
-    eckuml: 5, mv: 7, zv: 8, pilz: 9,
-    sb: 1.5, sb_rc: 4.5,
-    drehband: 7, kipplager: 6, fangschere: 8, kippverschluss: 10,
-    schliesskloben: 3,
-    griff: 9, griff_ab: 18,
+    uml_vso: 6, uml_vso_wk2_sb: 7, uml_vsu_fh: 6, verr_vsu_k: 5, uml_vsu_wk2_sb: 7,
+    schere_0: 9, schere_1: 9.5, schere_2: 10, schere_3: 11.5, schere_4: 13,
+    zw_zusatzschere: 3, zusatzschere: 12, unterleg_z: 1, zw_af_gr1: 3,
+    verl_1: 2.5, verl_2: 3, verl_3: 3.2, verl_4: 3.5, verl_5: 3.8, verl_6: 4,
+    zw_bs_1: 3, zw_bs_2: 3, zw_bs_3: 3.2, zw_bs_3_70: 3.5,
+    getr_20: 10, getr_60: 11, getr_80: 13, getr_120: 15, getr_160: 19, getr_200: 22,
+    zw_kk_1: 3, zw_kk_2: 3.2,
+    stulp_30: 12, stulp_60: 13, stulp_80: 15, stulp_120: 17, stulp_160: 21, stulp_200: 24,
+    zw_ks_2_rs: 3, zw_ks_3_rs: 3.2,
+    uml_bso_k3: 5, uml_bs_k3_1: 6, uml_bs_k3_2: 6.5, uml_bs_2: 6, uml_bs_4: 7,
+    hebel_globe: 18, griff: 9, anbohrschutz: 4,
+    falzluftbegrenzer: 0.6, falzluftbegrenzer_f: 0.8, unterleg_rb: 0.5, aushebelsicherung: 2,
+    kippriegellager: 2.5, sb_srs: 1.5, sb_srs_wk2: 4.5,
+    winkelband: 5, kappe_wh: 0.8, scherenlager: 6, kappe_s: 0.8, bolzen: 0.5,
+    falzeckband: 5, kappe_feb_re: 0.8, kappe_feb_li: 0.8, ecklager: 6, kappe_el_o: 0.8, kappe_el_u: 0.8,
+    kippbegrenzer: 4, fehlbedienungssperre: 3, schnaepper: 4, hebel_vl_re: 6, hebel_vl_li: 6,
+    kipplager: 6, fangschere: 8, kippverschluss: 10,
     schrauben: 6, kloetze: 2
   }
 };
@@ -822,8 +943,6 @@ const fmtMM = n => new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).
 const fmt = (n, d = 2) => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: d }).format(n);
 const fmtEur = n => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n) + ' €';
 
-function getriebeGr(ffh) { return ffh <= 800 ? 1 : ffh <= 1200 ? 2 : ffh <= 1600 ? 3 : 4; }
-function schereGr(ffb) { return ffb <= 600 ? 1 : ffb <= 800 ? 2 : ffb <= 1100 ? 3 : 4; }
 function kantelLaenge(mm) { return Math.max(800, Math.ceil(mm / 100) * 100); }
 
 /* ================= Persistenz ================= */
@@ -872,7 +991,7 @@ let stamm = stammLaden();
 const stammSpeichern = () => localStorage.setItem(LS_STAMM, JSON.stringify(stamm));
 const pB = k => +stamm.preisB[k] || 0;
 const pM = k => +stamm.preisM[k] || 0;
-const artNr = k => stamm.artnr[k] || '';
+const artNr = k => stamm.artnr[k] || BESCHLAG_ARTNR[k] || '';
 
 /* ================= Eingaben ================= */
 function profilLesen() {
@@ -994,9 +1113,11 @@ function berechne(i) {
   }
 
   fluegel.forEach(f => {
-    if (f.ffb < 300) warnungen.push(f.name + ': Falzbreite ' + fmtMM(f.ffb) + ' mm sehr schmal – Beschlagmindestmaße prüfen.');
-    if (f.ffb > 1600) warnungen.push(f.name + ': Falzbreite ' + fmtMM(f.ffb) + ' mm über üblichem DK-Maximum (~1600 mm).');
-    if (f.ffh > 2400) warnungen.push(f.name + ': Falzhöhe ' + fmtMM(f.ffh) + ' mm über üblichem DK-Maximum (~2400 mm).');
+    const maxB = f.art === 'stulp' ? 1450 : 1650;
+    if (f.art !== 'kipp' && f.ffb < 400) warnungen.push(f.name + ': FFB ' + fmtMM(f.ffb) + ' mm unter Anwendungsbereich TITAN AF (400–' + maxB + ' mm).');
+    if (f.art !== 'kipp' && f.ffb > maxB) warnungen.push(f.name + ': FFB ' + fmtMM(f.ffb) + ' mm über Anwendungsbereich TITAN AF (400–' + maxB + ' mm).');
+    if (f.ffh < 460) warnungen.push(f.name + ': FFH ' + fmtMM(f.ffh) + ' mm unter Anwendungsbereich TITAN AF (460–3000 mm).');
+    if (f.ffh > 3000) warnungen.push(f.name + ': FFH ' + fmtMM(f.ffh) + ' mm über Anwendungsbereich TITAN AF (460–3000 mm).');
   });
   felder.forEach(f => {
     if (f.glasB < 150 || f.glasH < 150) warnungen.push(f.name + ': Glasmaß sehr klein – Fertigungsminimum prüfen.');
@@ -1065,55 +1186,76 @@ function berechne(i) {
     beschlag.set(key, e);
   };
 
-  fluegel.forEach(f => {
-    const gGr = getriebeGr(f.ffh), sGr = schereGr(f.ffb);
-    const griffKey = i.rc === 'std' ? 'griff' : 'griff_ab';
-    if (f.art === 'dk') {
-      add('ecklager', 1);
-      add('scherenlager', 1);
-      add('schere_' + sGr, 1, 'Richtgröße nach FFB ' + fmtMM(f.ffb) + ' mm');
-      if (f.ffb > 1100) add('zusatzschere', 1, 'ab FFB > 1100 mm empfohlen');
-      add('getr_dk_' + gGr, 1, 'Richtgröße nach FFH ' + fmtMM(f.ffh) + ' mm');
-      add('eckuml', 2);
-      const mvG = f.ffh > 1800 ? 2 : (f.ffh > 1200 ? 1 : 0);
-      const mvB = f.ffh > 1400 ? 1 : 0;
-      const zvU = f.ffb > 1000 ? 1 : 0;
-      add('mv', mvG + mvB, 'griff-/bandseitig nach FFH');
-      add('zv', zvU, 'ab FFB > 1000 mm');
-      let punkte = 4 + mvG + mvB + zvU + (f.ffb > 800 ? 1 : 0);
-      if (i.rc === 'rc2') {
-        const pilz = (f.ffh > 1000 ? 1 : 0) + (f.ffb > 800 ? 1 : 0);
-        add('pilz', pilz, 'RC 2: zusätzliche Pilzkopfpunkte');
-        add('sb_rc', punkte + pilz, 'RC 2: alle Punkte mit Sicherheitsschließblech');
-      } else if (i.rc === 'rc1') {
-        add('sb_rc', 2, 'RC 1 N: unten + griffseitig');
-        add('sb', punkte - 2);
+  const baender = baenderFuer(i);
+  const S = SIEGENIA;
+  const bandseiteSet = band => {
+    add('winkelband', 1); add('kappe_wh', 1);
+    add('scherenlager', 1); add('kappe_s', 1); add('bolzen', 1);
+    add('falzeckband', 1); add(band === 'L' ? 'kappe_feb_li' : 'kappe_feb_re', 1);
+    add('ecklager', 1); add('kappe_el_o', 1); add('kappe_el_u', 1);
+  };
+  const griffSet = () => {
+    if (i.rc === 'std') add('griff', 1, i.din);
+    else add('hebel_globe', 1, i.din + ', abschließbar 100 Nm');
+    if (i.rc === 'rc2') add('anbohrschutz', 1, 'RC 2');
+  };
+
+  fluegel.forEach((f, idx) => {
+    const ffb = Math.round(f.ffb), ffh = Math.round(f.ffh);
+    const band = baender[idx];
+    let sb = 0, sbWk2 = 0;   // Schließbleche S-RS / S-RS WK2 BSO laut Spalten 20–22 bzw. 54–56
+
+    if (f.art === 'dk' || f.art === 'dreh') {
+      /* --- Erstflügel / 1-flg. Dreh-Kipp (Beschlagliste S001, Pos. 1–22) --- */
+      add('uml_vso', 1, 'Pos. 1'); sb += 2;
+      if (f.art === 'dk') {
+        const sch = bereich(ffb, S.schereFFB);
+        if (sch) { add(sch[2], 1, 'FFB ' + fmtMM(ffb)); sb += sch[3]; }
+        if (ffb >= 1251) { add('zw_zusatzschere', 1, 'FFB ≥ 1251'); add('zusatzschere', 1); add('unterleg_z', 1); sb += 1; }
+        add('uml_vsu_fh', 1, 'Pos. 6'); sb += 1; add('kippriegellager', 1);
+        const vo = bereich(ffb, S.verlObenFFB); if (vo) { add(vo[2], 1, 'oben, FFB ' + fmtMM(ffb)); sb += 1; }
+        const zo = bereich(ffb, S.zwObenFFB); if (zo) { add(zo[2], 1, 'oben, FFB ≥ 1051'); sb += 1; }
       } else {
-        add('sb', punkte);
+        add('uml_vsu_fh', 1, 'Dreh: unten griffseitig (Richtwert)'); sb += 1;
       }
-      add(griffKey, 1, i.din + (i.rc !== 'std' ? ', abschließbar 100 Nm' : ''));
-    } else if (f.art === 'dreh') {
-      add('ecklager', 1);
-      add('drehband', 1);
-      add('getr_d_' + gGr, 1, 'Richtgröße nach FFH ' + fmtMM(f.ffh) + ' mm');
-      const mvG = f.ffh > 1200 ? 1 : 0;
-      add('mv', mvG);
-      const punkte = 3 + mvG;
-      if (i.rc === 'rc2') { add('sb_rc', punkte, 'RC 2'); }
-      else if (i.rc === 'rc1') { add('sb_rc', 2, 'RC 1 N'); add('sb', punkte - 2); }
-      else add('sb', punkte);
-      add(griffKey, 1, i.din);
-    } else if (f.art === 'kipp') {
-      add('kipplager', 2);
-      add('fangschere', f.ffb > 1000 ? 2 : 1);
-      add('kippverschluss', 1);
-      add(i.rc === 'std' ? 'sb' : 'sb_rc', 2);
-      add(griffKey, 1);
+      const g = bereich(ffh, S.getriebeFFH);
+      if (g) { add(g[2], 1, 'FFH ' + fmtMM(ffh)); sb += g[3]; }
+      const kk = bereich(ffh, S.zwKKFFH); if (kk) { add(kk[2], 2, 'FFH ≥ 2401'); sb += 2; }
+      const ub = bereich(ffh, S.umlBandFFH); if (ub) { add(ub[2], 1, 'Bandseite, FFH ' + fmtMM(ffh)); sb += ub[3]; sbWk2 += ub[4]; }
+      const vb = bereich(ffh, S.verlBandFFH); if (vb) { add(vb[2], 1, 'Bandseite'); sb += 1; }
+      const z1 = bereich(ffh, S.zwBand1FFH); if (z1) { add(z1[2], 1, 'Bandseite'); sb += 1; }
+      const z2 = bereich(ffh, S.zwBand2FFH); if (z2) { add(z2[2], 1, 'Bandseite, FFH ≥ 2401'); sb += 1; }
+      add('falzluftbegrenzer', 2); add('unterleg_rb', 2); add('aushebelsicherung', 1);
+      griffSet();
+      add('sb_srs', sb, 'Rahmenteile lt. Liste'); add('sb_srs_wk2', sbWk2, 'Bandseite oben');
+      bandseiteSet(band);
     } else if (f.art === 'stulp') {
-      add('getr_st_' + gGr, 1, 'Richtgröße nach FFH ' + fmtMM(f.ffh) + ' mm');
-      add('ecklager', 1);
-      add('drehband', 1);
-      add('schliesskloben', 2);
+      /* --- Zweitflügel / Standflügel Dreh DS 16 (Beschlagliste S002, Pos. 37–58; Getriebe/Uml. BS Katalog 02.2026) --- */
+      add('uml_vso_wk2_sb', 1, 'Pos. 37'); sb += 1;
+      const sch = bereich(Math.min(ffb, 1450), S.schereFFB);
+      if (sch) { add(sch[2], 1, 'FFB ' + fmtMM(ffb)); sb += (ffb >= 1051 ? 1 : 0); }
+      if (ffb >= 1251) { add('zw_af_gr1', 1, 'FFB ≥ 1251'); sb += 1; }
+      if (ffh <= 800) add('verr_vsu_k', 1, 'FFH ≤ 800'); else add('uml_vsu_wk2_sb', 1, 'FFH ≥ 801');
+      add('kippriegellager', 1);
+      const vo = bereich(Math.min(ffb, 1450), S.verlObenFFB); if (vo) { add(vo[2], 1, 'oben'); sb += 1; }
+      if (ffb >= 1051) { add('zw_bs_2', 1, 'oben, FFB ≥ 1051'); sb += 1; }
+      const sg = bereich(ffh, S.stulpGetrFFH);
+      if (sg) { add(sg[2], 1, 'FFH ' + fmtMM(ffh)); sb += sg[3]; }
+      const sz = bereich(ffh, S.stulpZwFFH); if (sz) { add(sz[2], 1, 'FFH ≥ 2401'); sb += sz[3]; }
+      add('falzluftbegrenzer_f', 1);
+      const ub = bereich(ffh, S.stulpUmlBandFFH); if (ub) { add(ub[2], ub[5], 'Bandseite, FFH ' + fmtMM(ffh)); sb += ub[3]; sbWk2 += ub[4]; }
+      const vb = bereich(ffh, S.verlBandFFH); if (vb) { add(vb[2], 1, 'Bandseite'); sb += 1; }
+      const z1 = bereich(ffh, S.zwBand1FFH); if (z1) { add(z1[2], 1, 'Bandseite'); sb += 1; }
+      const z2 = bereich(ffh, S.zwBand2FFH); if (z2) { add(z2[2], 1, 'Bandseite, FFH ≥ 2401'); sb += 1; }
+      add('aushebelsicherung', 1); add('falzluftbegrenzer', 1); add('unterleg_rb', 1);
+      add('sb_srs', sb, 'Rahmenteile lt. Liste'); add('sb_srs_wk2', sbWk2, 'Bandseite oben');
+      bandseiteSet(band);
+    } else if (f.art === 'kipp') {
+      add('kipplager', 2, 'Richtwert');
+      add('fangschere', ffb > 1000 ? 2 : 1, 'Richtwert');
+      add('kippverschluss', 1, 'Richtwert');
+      add('sb_srs', 2);
+      griffSet();
     }
   });
   if (felder.length) add('kloetze', felder.length, 'Trag-/Distanzklötze');
@@ -1143,7 +1285,8 @@ function berechne(i) {
     return { name: f.name, kg: holzKg + glasKg };
   });
   fluegelGewichte.forEach(fg => {
-    if (fg.kg > 100) warnungen.push(fg.name + ': ca. ' + fmt(fg.kg, 0) + ' kg Flügelgewicht – Tragfähigkeit der Bänder prüfen (Standard ~130 kg).');
+    if (fg.kg > 150) warnungen.push(fg.name + ': ca. ' + fmt(fg.kg, 0) + ' kg Flügelgewicht – über 150 kg Anwendungsbereich TITAN AF!');
+    else if (fg.kg > 120) warnungen.push(fg.name + ': ca. ' + fmt(fg.kg, 0) + ' kg Flügelgewicht – nahe an 150 kg (TITAN AF), Anwendungsdiagramm prüfen.');
   });
 
   /* ---- Kalkulation (je Fenster, aus Stammdaten-Preisen) ---- */
@@ -1335,6 +1478,7 @@ function ergebnisHTML(r) {
   r.warnungen.forEach(w => h += '<div class="warnung">⚠ ' + w + '</div>');
 
   h += '<h3>Ansicht</h3><div class="zeichnung">' + fensterSVG(r) + '</div>';
+  h += '<h3>Profilschnitte</h3>' + profilSchnittMini(i);
 
   h += '<h3>Maßkette (Werkstattformel)</h3><div class="kette">';
   h += kBox('Rahmenaußenmaß', fmtMM(r.ram.b) + ' × ' + fmtMM(r.ram.h) + ' mm', i.bezug === 'rohbau' ? 'aus Rohbaumaß − 2 × ' + i.profil.fuge + ' mm Fuge' : '');
@@ -1371,7 +1515,7 @@ function ergebnisHTML(r) {
       '<td class="num">' + fmtMM(e.laenge) + ' mm</td><td class="num">' + e.stueck + '</td></tr>')
   );
 
-  h += '<h3>Beschlagliste – Siegenia TITAN AF, ' + RC[i.rc].label + ' (je Fenster)</h3>';
+  h += '<h3>Beschlagliste – Siegenia TITAN AF nach Beschlagliste (FFB/FFH), ' + RC[i.rc].label + ' (je Fenster)</h3>';
   h += r.beschlag.length
     ? tabelle([{ t: 'Art.-Nr.' }, { t: 'Beschlagteil' }, { t: 'Anzahl', num: 1 }, { t: 'Hinweis' }],
         r.beschlag.map(b => '<tr><td>' + (artNr(b.key) || '<span class="leer">–</span>') + '</td><td>' + BESCHLAG_LABEL[b.key] +
@@ -1498,7 +1642,8 @@ function prodSheetHTML(r) {
     '<tr><td>Nut</td><td>innen</td>' + sbZelle(sb.niT) + sbZelle(sb.niH) + '</tr>' +
     '<tr><td>Nut</td><td>außen</td>' + sbZelle(sb.naT) + sbZelle(sb.naH) + '</tr>' +
     '</tbody></table></div></div>' +
-    '<div class="ps-sb-skizze">' + solbankSkizze() + '</div>' +
+    '<div class="ps-sb-skizze">' + profilSchnittBild(i.typ === 'standard' ? 'standard' : 'wetterschenkel') + '</div>' +
+    (i.teilung === 'stulp' ? '<div class="ps-sb-skizze">' + profilSchnittBild('mittelschluss') + '</div>' : '') +
     '</div>';
 
   // Bemerkung
@@ -1509,7 +1654,25 @@ function prodSheetHTML(r) {
   return h;
 }
 
-/* Profilskizze Solbank – dem Werkstattblatt nachgebildet:
+/* Profilschnitt-Ausschnitte (Leitz-Schnittzeichnungen) */
+const PROFIL_SCHNITTE = {
+  standard:       { bild: 'img/schnitt-standard-detail.jpg',       voll: 'img/schnitt-standard.jpg',       text: 'Vertikalschnitt unten – Standard mit Regenschiene (Gutmann SPREE 24 OF)' },
+  wetterschenkel: { bild: 'img/schnitt-wetterschenkel-detail.jpg', voll: 'img/schnitt-wetterschenkel.jpg', text: 'Vertikalschnitt unten – Denkmalschutz mit Wetterschenkel' },
+  mittelschluss:  { bild: 'img/schnitt-mittelschluss-detail.jpg',  voll: 'img/schnitt-mittelschluss.jpg',  text: 'Horizontalschnitt Mittelschluss (Stulp)' }
+};
+function profilSchnittBild(key) {
+  const s = PROFIL_SCHNITTE[key];
+  return '<a href="' + s.voll + '" target="_blank" rel="noopener"><img src="' + s.bild + '" alt="' + s.text + '"></a><small>' + s.text + '</small>';
+}
+function profilSchnittMini(i) {
+  const keys = [i.typ === 'standard' ? 'standard' : 'wetterschenkel'];
+  if (i.teilung === 'stulp') keys.push('mittelschluss');
+  return '<div class="profil-mini">' + keys.map(k =>
+    '<figure><a href="' + PROFIL_SCHNITTE[k].voll + '" target="_blank" rel="noopener"><img src="' + PROFIL_SCHNITTE[k].bild + '" alt="' + PROFIL_SCHNITTE[k].text + '"></a>' +
+    '<figcaption>' + PROFIL_SCHNITTE[k].text + '</figcaption></figure>').join('') + '</div>';
+}
+
+/* Profilskizze Solbank – dem Werkstattblatt nachgebildet (Reserve, aktuell durch Leitz-Schnitt ersetzt):
    Profil mit steiler linker und flacher rechter Aufdeckschräge, Nut rechts,
    gestufte linke Seite, Höhen-Messpfeil (magenta) und H/T-Legende. */
 function solbankSkizze() {
@@ -1933,11 +2096,15 @@ function stammMaskeRendern() {
     '<td class="num"><input type="number" min="0" step="0.01" style="max-width:110px" data-mpreis="' + d.key + '" value="' + (stamm.preisM[d.key] || '') + '"></td></tr>');
   $('matPreise').innerHTML = tabelle([{ t: 'Material' }, { t: 'Einheit' }, { t: 'Preis', num: 1 }], mz);
 
-  const bz = BESCHLAG_DEF.map(d =>
-    '<tr><td>' + d.label + '</td>' +
-    '<td><input type="text" placeholder="Art.-Nr. aus Siegenia-Katalog" data-artnr="' + d.key + '" value="' + (stamm.artnr[d.key] || '') + '"></td>' +
-    '<td class="num"><input type="number" min="0" step="0.01" style="max-width:110px" data-bpreis="' + d.key + '" value="' + (stamm.preisB[d.key] || '') + '"></td></tr>');
-  $('beschlagStamm').innerHTML = tabelle([{ t: 'Beschlagteil' }, { t: 'Artikel-Nr.' }, { t: '€/Stk', num: 1 }], bz);
+  const bz = [];
+  let gruppe = '';
+  BESCHLAG_DEF.forEach(d => {
+    if (d.g !== gruppe) { gruppe = d.g; bz.push('<tr><th colspan="3" style="text-align:left">' + gruppe + '</th></tr>'); }
+    bz.push('<tr><td>' + d.label + '</td>' +
+      '<td><input type="text" placeholder="' + (d.artnr || 'Art.-Nr. aus Siegenia-Katalog') + '" data-artnr="' + d.key + '" value="' + (stamm.artnr[d.key] || d.artnr || '') + '"></td>' +
+      '<td class="num"><input type="number" min="0" step="0.01" style="max-width:110px" data-bpreis="' + d.key + '" value="' + (stamm.preisB[d.key] || '') + '"></td></tr>');
+  });
+  $('beschlagStamm').innerHTML = tabelle([{ t: 'Beschlagteil' }, { t: 'Materialnummer Siegenia' }, { t: '€/Stk', num: 1 }], bz);
 
   $('zuschlag').value = stamm.zuschlag || '';
 
@@ -1985,7 +2152,7 @@ function tonSelectsFuellen() {
   $('obAussenTonSel').innerHTML = opts;
 }
 function tabZeigen(name) {
-  ['erfassen', 'produktion', 'projekt', 'kalkulation', 'stamm'].forEach(t => {
+  ['erfassen', 'produktion', 'projekt', 'kalkulation', 'profile', 'stamm'].forEach(t => {
     $('tab-' + t).style.display = t === name ? '' : 'none';
   });
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('aktiv', b.dataset.tab === name));
@@ -2022,6 +2189,7 @@ $('btnLeeren').addEventListener('click', () => {
 $('btnDrucken').addEventListener('click', () => window.print());
 $('btnDruckenProd').addEventListener('click', () => window.print());
 $('btnDruckenKalk').addEventListener('click', () => window.print());
+$('btnDruckenProfile').addEventListener('click', () => window.print());
 $('btnProjektSpeichern').addEventListener('click', projektSpeichern);
 $('btnProjektOeffnen').addEventListener('click', () => dateiOeffnen(geoeffneteDatei));
 $('btnProjektNeu').addEventListener('click', neuesProjekt);

@@ -29,8 +29,15 @@ Systemen **IV 68** und **IV 78** – inklusive Bestelllisten und Kalkulation.
   eigener Fensteransicht (FL-Nummern und Öffnungscodes DKL/DKR/K/F),
   Blendrahmen-/Flügel-/Falzmaßen, Glasmaßen, Kanteln, Beschlag, Farben
   und Bemerkung – druckbar mit einer Seite pro Position
-- **Beschlag Siegenia TITAN AF** mit FFB/FFH-Richtgrößen; Artikelnummern
-  und Preise werden in der Stammdatenmaske hinterlegt
+- **Beschlag Siegenia TITAN AF nach Beschlagliste**: Teile und Größen werden
+  nach den FFB/FFH-Auswahltabellen der Siegenia-Beschlaglisten gewählt
+  (1-flg. Dreh-Kipp RC2 S001DE-12, Zweitflügel DS 16 S002DE-14, Katalog
+  02.2026) inkl. Schließblech-Anzahlen und Bandseiten-Drehpunkten;
+  Materialnummern sind vorbelegt, Preise in der Stammdatenmaske
+- **Profilschnitte** (Leitz-Werkzeugsatz L 161503926): Vertikalschnitt mit
+  Regenschiene, Variante Wetterschenkel und Horizontalschnitt Mittelschluss
+  als eigener Tab; der passende Ausschnitt erscheint automatisch auf der
+  Produktionsliste und im Ergebnis (Bilder unter `img/`)
 - **Holz-Bestellliste**: Kantellängen auf volle 100 mm aufgerundet
   (Lieferlängen 800–3500 mm), aggregiert über alle Positionen
 - **Bestelllisten je Projekt**: Holz, Glas (Bestellmaße), Beschlag mit
